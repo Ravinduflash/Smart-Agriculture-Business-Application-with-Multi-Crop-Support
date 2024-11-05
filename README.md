@@ -1,7 +1,7 @@
 # Smart Agriculture Business Application with Multi-Crop Support - Final Year R&D Project
 
 ## Overview
-This repository is dedicated to the **Smart Agriculture Business Application with Multi-Crop Support** project, an initiative aimed at transforming agricultural efficiency using IoT, machine learning, and real-time data visualization. This project is developed by [Your Name] and Oshan as part of our final year research and deployment project in Business Analytics specialization.
+This repository is dedicated to the **Smart Agriculture Business Application with Multi-Crop Support** project, an initiative aimed at transforming agricultural efficiency using IoT, machine learning, and real-time data visualization. This project is developed by [Ravindu Dulshan] and [Oshan Niluminda] as part of our final year research and deployment project in Business Analytics specialization.
 
 ## Project Description
 Our application provides a comprehensive solution to optimize crop management for diverse crop types. By leveraging IoT sensors, machine learning, and a web-based interface, we aim to provide farmers and agricultural advisors with data-driven insights to increase crop yield, reduce waste, and enhance sustainability. This system is adaptable to various crops, making it suitable for a range of agricultural environments.
