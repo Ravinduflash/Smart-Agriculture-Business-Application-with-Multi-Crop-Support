@@ -1,0 +1,5 @@
+# Required libraries for the project
+adafruit-circuitpython-dht
+adafruit-circuitpython-ads1x15
+smbus2
+pyserial
