@@ -11,6 +11,9 @@ import serial
 import adafruit_ds18x20
 from adafruit_onewire.bus import OneWireBus
 import binascii
+import urllib.request
+import urllib.parse
+from raspberry_module.config import THINGSPEAK_API_KEY
 
 # BMP180 Functions
 BMP180_I2C_ADDRESS = 0x77
@@ -128,6 +131,18 @@ data = {
     'p': 'N/A',
     'k': 'N/A',
     'rain_raw': 'N/A'
+}
+
+# ThingSpeak Field Mapping
+thingspeak_field_mapping = {
+    'bmp180_temp': 'field1',
+    'dht22_temp': 'field2',
+    'humidity': 'field3',
+    'pressure': 'field4',
+    'soil_moisture_raw': 'field5',
+    'light_raw': 'field6',
+    'co2': 'field7',
+    'n': 'field8'
 }
 
 # Locks
@@ -285,17 +300,77 @@ for thread in threads:
     thread.daemon = True
     thread.start()
 
-# Main Loop for Display
-header = f"{'Timestamp':<20} {'BMP180 Temp':<12} {'DHT22 Temp':<12} {'Humidity':<10} {'DS18B20 Temp':<14} {'Pressure':<10} {'Altitude':<10} {'Soil Moisture':<14} {'Light':<10} {'CO2':<10} {'NH3':<10} {'VOC':<10} {'N':<5} {'P':<5} {'K':<5} {'Rain':<10}"
-print(header)
+# Function to send data to ThingSpeak
+def send_to_thingspeak(api_key, sensor_data):
+    base_url = "https://api.thingspeak.com/update"
+    payload = {'api_key': api_key}
+    data_to_send_thingspeak = {}
 
+    for key, field in thingspeak_field_mapping.items():
+        if key in sensor_data and sensor_data[key] != 'N/A':
+            try:
+                # Attempt to convert to float if possible, otherwise send as is
+                payload[field] = float(sensor_data[key])
+            except ValueError:
+                # If conversion fails (e.g. for 'N/A' or other strings), skip or handle
+                # For now, we skip sending fields that can't be converted to float
+                # to avoid ThingSpeak errors for non-numeric data in numeric fields.
+                # ThingSpeak expects numbers for most fields.
+                # If a field is specifically for status strings, this logic might need adjustment.
+                print(f"Warning: Could not convert value '{sensor_data[key]}' for {key} to float. Skipping for ThingSpeak.")
+                continue # Skip this field
+        # else:
+            # print(f"Debug: Key {key} not in sensor_data or is 'N/A'")
+
+
+    if not any(key.startswith("field") for key in payload):
+        print("No valid data to send to ThingSpeak.")
+        return
+
+    try:
+        params = urllib.parse.urlencode(payload)
+        full_url = f"{base_url}?{params}"
+        # print(f"Sending data to ThingSpeak: {full_url}") # For debugging
+        with urllib.request.urlopen(full_url, timeout=10) as response:
+            response_text = response.read().decode('utf-8')
+            if response.status == 200 and response_text != "0":
+                print(f"Data sent to ThingSpeak successfully. Entry ID: {response_text}")
+            else:
+                print(f"Failed to send data to ThingSpeak. Response: {response_text} (Status: {response.status})")
+    except urllib.error.URLError as e:
+        print(f"Error sending data to ThingSpeak: {e.reason}")
+    except Exception as e:
+        print(f"An unexpected error occurred while sending to ThingSpeak: {e}")
+
+
+# Main Loop
+print("Starting sensor data collection and ThingSpeak updates...")
 try:
     while True:
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         data['timestamp'] = timestamp
-        print(f"{data['timestamp']:<20} {data['bmp180_temp']:<12} {data['dht22_temp']:<12} {data['humidity']:<10} {data['ds18b20_temp']:<14} {data['pressure']:<10} {data['altitude']:<10} {data['soil_moisture_raw']:<14} {data['light_raw']:<10} {data['co2']:<10} {data['nh3']:<10} {data['voc']:<10} {data['n']:<5} {data['p']:<5} {data['k']:<5} {data['rain_raw']:<10}")
-        time.sleep(5)
+
+        # Prepare data for ThingSpeak (only the selected 8 fields)
+        data_to_send_to_thingspeak = {}
+        for key in thingspeak_field_mapping.keys():
+            data_to_send_to_thingspeak[key] = data.get(key, 'N/A') # Use .get for safety
+
+        # Also include timestamp in the console output if needed
+        current_readings_for_console = f"{data['timestamp']:<20}"
+        for key, value in data.items():
+            if key != 'timestamp': # Avoid duplicating timestamp
+                 current_readings_for_console += f" {key}: {value}"
+        print(f"Current readings: {current_readings_for_console}")
+
+
+        send_to_thingspeak(THINGSPEAK_API_KEY, data_to_send_to_thingspeak)
+        
+        # Wait for the next cycle. ThingSpeak free plan allows updates every 15 seconds.
+        # Sensor reading threads update every 2 seconds.
+        # Sending every 15 seconds to respect ThingSpeak limits.
+        time.sleep(15)
 except KeyboardInterrupt:
-    print("Program stopped")
+    print("Program stopped by user.")
     if ser:
         ser.close()
+    print("Exiting application.")
