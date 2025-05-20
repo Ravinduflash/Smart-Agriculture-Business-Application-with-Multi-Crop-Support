@@ -1,5 +1,8 @@
 # Required libraries for the project
+adafruit-blinka
 adafruit-circuitpython-dht
 adafruit-circuitpython-ads1x15
 smbus2
 pyserial
+adafruit-circuitpython-ds18x20
+adafruit-circuitpython-onewire

@@ -11,6 +11,18 @@ Our application provides a comprehensive solution to optimize crop management fo
    - **IoT Sensors**: Integrate sensors for soil moisture, temperature, humidity, pH levels, light intensity, and crop-specific metrics.
    - **Data Pipeline**: Collect and process data in real-time through LoRa/NB-IoT/Wi-Fi, using Python for preprocessing (e.g., handling missing values and outliers).
    - **Data Storage**: Maintain a scalable, robust data repository using MySQL, MongoDB, or AWS S3 for historical and real-time analysis.
+   - **ThingSpeak Integration**:
+     - The `raspberry_module/all_sensors_script_new.py` script is configured to send real-time sensor data to ThingSpeak, a platform for IoT data analytics and visualization.
+     - The following 8 sensor parameters are currently being sent:
+       1. BMP180 Temperature (from BMP180 sensor)
+       2. DHT22 Temperature (from DHT22 sensor)
+       3. Humidity (from DHT22 sensor)
+       4. Atmospheric Pressure (from BMP180 sensor)
+       5. Soil Moisture (raw value)
+       6. Light Intensity (raw value)
+       7. CO2 Level (estimated from MQ135 sensor)
+       8. Nitrogen (N) Level (from NPK sensor)
+     - This allows for remote monitoring and basic visualization of key environmental factors.
 
 2. **Machine Learning Model Development**
    - **Predictive Models**:
@@ -51,6 +63,18 @@ Our application provides a comprehensive solution to optimize crop management fo
 - Enhanced understanding of crop-specific growth, disease, and yield factors.
 - Scalable architecture for expanding crop support and adapting to larger farms.
 
+## Configuration
+
+### ThingSpeak API Key
+To enable data transmission to ThingSpeak, you need to configure your ThingSpeak API Write Key.
+1. Locate the configuration file at `raspberry_module/config.py`.
+2. Open this file and replace `"YOUR_ACTUAL_API_KEY_HERE"` with your actual ThingSpeak API Write Key.
+   ```python
+   # raspberry_module/config.py
+   THINGSPEAK_API_KEY = "YOUR_ACTUAL_API_KEY_HERE" 
+   ```
+3. **Important**: The `raspberry_module/config.py` file is included in `.gitignore` to prevent accidental commitment of your sensitive API key. Ensure it remains gitignored if you are managing your own fork or version of this project.
+
 ## Getting Started
 1. **Clone this Repository**:
    ```bash
@@ -63,13 +87,21 @@ Our application provides a comprehensive solution to optimize crop management fo
      ```bash
      pip install -r requirements.txt
      ```
+   - Ensure you have configured any necessary API keys as described in the "Configuration" section (e.g., ThingSpeak API Key for sensor data upload).
 
 3. **Run the Application**:
-   - Start the Django web server:
-     ```bash
-     python manage.py runserver
-     ```
-   - Access the dashboard at `http://127.0.0.1:8000`.
+   - **Sensor Data Collection (Raspberry Pi)**:
+     - To run the sensor data collection and ThingSpeak upload script on a Raspberry Pi (or compatible environment with connected sensors):
+       ```bash
+       python raspberry_module/all_sensors_script_new.py
+       ```
+     - Ensure that all sensor hardware is correctly connected and any required system libraries (e.g., for I2C, OneWire) are enabled on your Raspberry Pi.
+   - **Django Web Application**:
+     - Start the Django web server:
+       ```bash
+       python manage.py runserver
+       ```
+     - Access the dashboard at `http://127.0.0.1:8000`.
 
 ## Contributing
 Contributions are welcome! Please follow these steps to contribute:
