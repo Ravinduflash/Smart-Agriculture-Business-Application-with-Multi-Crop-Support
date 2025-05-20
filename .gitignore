@@ -1,3 +1,4 @@
 # Ignore the virtual environment folder
 venv/
 Smart-Agriculture-Business-Application-with-Multi-Crop-Support/venv
+raspberry_module/config.py
