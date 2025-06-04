@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Management</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+</head>
+<body class="bg-gray-50">
+    <!-- Top Navigation Bar -->
+    <nav class="bg-green-800 text-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-leaf text-2xl mr-2"></i>
+                    <span class="font-bold text-xl">Smart Agriculture Platform</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <a class="flex items-center space-x-2 bg-green-700 px-4 py-2 rounded" href="notifications.html">
+                            <i class="fas fa-bell"></i>
+                            <span class="bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center absolute -top-1 -right-1">3</span>
+                        </a>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <img src="https://cdn.pixabay.com/photo/2023/10/03/10/06/anonymous-8291092_640.png" width="40" height="40" alt="Profile" class="rounded-full">
+                        <span>Admin</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="flex h-screen">
+        <aside class="hidden md:flex md:flex-shrink-0">
+            <div class="flex flex-col w-64 bg-gray-800">
+                <div class="flex flex-col flex-grow pt-5 overflow-y-auto">
+                    <nav class="flex-1 px-2 space-y-1">
+                        <a href="SAS.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-700 rounded-md">
+                            <i class="fas fa-home mr-3"></i> Dashboard
+                        </a>
+                        <a href="crop management.html" class="flex items-center px-4 py-3 text-sm font-medium text-white bg-green-700 rounded-md">
+                            <i class="fas fa-seedling mr-3"></i> Crop Management
+                        </a>
+                        <a href="iot-sensors.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-700 rounded-md">
+                            <i class="fas fa-microchip mr-3"></i> IoT Sensors
+                        </a>
+                        <a href="ml-models.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-700 rounded-md">
+                            <i class="fas fa-brain mr-3"></i> ML Models
+                        </a>
+                        <a href="Analytics & Reports.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-700 rounded-md">
+                            <i class="fas fa-chart-line mr-3"></i> Analytics & Reports
+                        </a>
+                        <a href="settings.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-700 rounded-md">
+                            <i class="fas fa-cog mr-3"></i> Settings
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area for Crop Management -->
+        <main class="flex-1 overflow-auto">
+            <section class="px-4 py-6 bg-white shadow-md">
+                <h1 class="text-2xl font-semibold text-gray-900">Crop Management</h1>
+                <p class="text-sm text-gray-500">Manage and monitor crop-specific settings and data.</p>
+            </section>
+
+            <!-- Crop List and Actions -->
+            <section class="mt-6 px-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-semibold text-gray-900">Your Crops</h2>
+                    <button class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                        Add New Crop
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+                    <!-- Crop Card 1 -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-medium text-gray-700">Tomatoes</h3>
+                        <p class="text-sm text-gray-500">Updated: 2 hours ago</p>
+                        <div class="mt-4 text-sm">
+                            <p><strong>Water Needs:</strong> High</p>
+                            <p><strong>Optimal pH:</strong> 6.0 - 6.8</p>
+                            <p><strong>Sunlight:</strong> Full Sun</p>
+                        </div>
+                        <div class="mt-4 flex space-x-2">
+                            <button class="px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600">
+                                View Details
+                            </button>
+                            <button class="px-3 py-1 bg-red-500 text-white rounded-md text-sm hover:bg-red-600">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Crop Card 2 -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-medium text-gray-700">Lettuce</h3>
+                        <p class="text-sm text-gray-500">Updated: 1 day ago</p>
+                        <div class="mt-4 text-sm">
+                            <p><strong>Water Needs:</strong> Moderate</p>
+                            <p><strong>Optimal pH:</strong> 6.2 - 6.8</p>
+                            <p><strong>Sunlight:</strong> Partial Shade</p>
+                        </div>
+                        <div class="mt-4 flex space-x-2">
+                            <button class="px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600">
+                                View Details
+                            </button>
+                            <button class="px-3 py-1 bg-red-500 text-white rounded-md text-sm hover:bg-red-600">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Crop Details Modal -->
+            <div id="crop-details-modal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden">
+                <div class="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
+                    <h3 class="text-lg font-semibold text-gray-900">Tomato Details</h3>
+                    <div class="mt-4 text-sm text-gray-600">
+                        <p><strong>Water Needs:</strong> High</p>
+                        <p><strong>Optimal pH:</strong> 6.0 - 6.8</p>
+                        <p><strong>Sunlight:</strong> Full Sun</p>
+                        <p><strong>Soil Moisture Level:</strong> 70%</p>
+                        <p><strong>Last Irrigation:</strong> 5 hours ago</p>
+                    </div>
+                    <div class="mt-4 flex justify-end">
+                        <button onclick="closeModal()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function openModal() {
+            document.getElementById("crop-details-modal").classList.remove("hidden");
+        }
+
+        function closeModal() {
+            document.getElementById("crop-details-modal").classList.add("hidden");
+        }
+    </script>
+</body>
+</html>
