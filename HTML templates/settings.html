@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Smart Agriculture Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <!-- Top Navigation Bar -->
+    <nav class="bg-green-800 text-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-leaf text-2xl mr-2"></i>
+                    <span class="font-bold text-xl">Smart Agriculture Platform</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <a class="flex items-center space-x-2 bg-green-700 px-4 py-2 rounded" href="notifications.html">
+                            <i class="fas fa-bell"></i>
+                            <span class="bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center absolute -top-1 -right-1">3</span>
+                        </a>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <img src="https://cdn.pixabay.com/photo/2023/10/03/10/06/anonymous-8291092_640.png" width="40" height="40" alt="Profile" class="rounded-full">
+                        <span>Admin</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Side Navigation -->
+    <div class="flex h-screen">
+        <aside class="hidden md:flex md:flex-shrink-0">
+            <div class="flex flex-col w-64 bg-gray-800">
+                <div class="flex flex-col flex-grow pt-5 overflow-y-auto">
+                    <nav class="flex-1 px-2 space-y-1">
+                        <a href="SAS.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-700 rounded-md">
+                            <i class="fas fa-home mr-3"></i> Dashboard
+                        </a>
+                        <a href="crop management.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-700 rounded-md">
+                            <i class="fas fa-seedling mr-3"></i> Crop Management
+                        </a>
+                        <a href="iot-sensors.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-700 rounded-md">
+                            <i class="fas fa-microchip mr-3"></i> IoT Sensors
+                        </a>
+                        <a href="ml-models.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-700 rounded-md">
+                            <i class="fas fa-brain mr-3"></i> ML Models
+                        </a>
+                        <a href="Analytics & Reports.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-700 rounded-md">
+                            <i class="fas fa-chart-line mr-3"></i> Analytics & Reports
+                        </a>
+                        <a href="settings.html" class="flex items-center px-4 py-3 text-sm font-medium text-white bg-green-700 rounded-md">
+                            <i class="fas fa-cog mr-3"></i> Settings
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area for Settings -->
+        <main class="flex-1 overflow-auto">
+            <section class="px-4 py-6 bg-white shadow-md">
+                <h1 class="text-2xl font-semibold text-gray-900">Settings</h1>
+                <p class="text-sm text-gray-500">Manage your application settings and preferences.</p>
+            </section>
+
+            <!-- Settings Sections -->
+            <section class="mt-6 px-4">
+                <h2 class="text-xl font-semibold text-gray-900">Manage Settings</h2>
+                
+                <!-- Crop Management Settings -->
+                
+                <div class="bg-white p-6 rounded-lg shadow mt-4">
+                    <h3 class="text-lg font-medium text-gray-700">Crop Management</h3>
+                    <p class="text-sm text-gray-500">Configure crop settings and monitor crop health.</p>
+                    <label class="block mt-2">Default Water Needs:</label>
+                    <select class="mt-1 block w-full border-gray-300 rounded-md">
+                        <option>Low</option>
+                        <option>Moderate</option>
+                        <option>High</option>
+                    </select>
+                    <label class="block mt-4">Optimal pH Range:</label>
+                    <input type="text" class="mt-1 block w-full border-gray-300 rounded-md" placeholder="6.0 - 6.8">
+                </div>
+
+                <!-- IoT Sensors Settings -->
+                <div class="bg-white p-6 rounded-lg shadow mt-4">
+                    <h3 class="text-lg font-medium text-gray-700">IoT Sensors</h3>
+                    <p class="text-sm text-gray-500">Manage and monitor IoT sensor data.</p>
+                    <label class="block mt-2">Sensor Update Frequency:</label>
+                    <select class="mt-1 block w-full border-gray-300 rounded-md">
+                        <option>Every 5 minutes</option>
+                        <option>Every 10 minutes</option>
+                        <option>Every 30 minutes</option>
+                    </select>
+                </div>
+
+                <!-- ML Models Settings -->
+                <div class="bg-white p-6 rounded-lg shadow mt-4">
+                    <h3 class="text-lg font-medium text-gray-700">ML Models</h3>
+                    <p class="text-sm text-gray-500">Manage machine learning models for predictions.</p>
+                    <label class="block mt-2">Model Training Frequency:</label>
+                    <select class="mt-1 block w-full border-gray-300 rounded-md">
+                        <option>Daily</option>
+                        <option>Weekly</option>
+                        <option>Monthly</option>
+                    </select>
+                </div>
+
+                <!-- Analytics & Reports Settings -->
+                <div class="bg-white p-6 rounded-lg shadow mt-4">
+                    <h3 class="text-lg font-medium text-gray-700">Analytics & Reports</h3>
+                    <p class="text-sm text-gray-500">View analytics and generate reports.</p>
+                    <label class="block mt-2">Report Generation Frequency:</label>
+                    <select class="mt-1 block w-full border-gray-300 rounded-md">
+                        <option>Daily</option>
+                        <option>Weekly</option>
+                        <option>Monthly</option>
+                    </select>
+                </div>
+
+                <!-- System Appearance Settings -->
+                <div class="bg-white p-6 rounded-lg shadow mt-4">
+                    <h3 class="text-lg font-medium text-gray-700">System Appearance</h3>
+                    <p class="text-sm text-gray-500">Customize the appearance of the application.</p>
+                    <label class="block mt-2">Theme:</label>
+                    <select class="mt-1 block w-full border-gray-300 rounded-md">
+                        <option>Light</option>
+                        <option>Dark</option>
+                    </select>
+                </div>
+
+                <!-- User Account Settings -->
+                <div class="bg-white p-6 rounded-lg shadow mt-4">
+                    <h3 class="text-lg font-medium text-gray-700">User  Account Settings</h3>
+                    <p class="text-sm text-gray-500">Manage your account details and preferences.</p>
+                    <label class="block mt-2">Email Notifications:</label>
+                    <input type="checkbox" class="mt-1">
+                    <label class="ml-2">Receive email notifications</label>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
