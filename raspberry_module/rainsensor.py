@@ -11,7 +11,7 @@ i2c = busio.I2C(board.SCL, board.SDA)
 ads = ADS.ADS1115(i2c)
 
 # Read Rain Sensor Analog Output (AO -> A0)
-rain_channel = AnalogIn(ads, ADS.P0)
+rain_channel = AnalogIn(ads, ADS.P2)
 
 # --- CALIBRATION INSTRUCTIONS ---
 # 1. Record the ADC reading when the sensor is completely DRY.

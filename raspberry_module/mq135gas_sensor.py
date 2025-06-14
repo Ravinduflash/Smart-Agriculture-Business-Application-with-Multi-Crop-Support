@@ -12,7 +12,7 @@ i2c = busio.I2C(board.SCL, board.SDA)
 ads = ADS.ADS1115(i2c)
 
 # Select MQ135 Analog Output (A0)
-mq135_channel = AnalogIn(ads, ADS.P0)
+mq135_channel = AnalogIn(ads, ADS.P1)
 
 # Calibration constants (adjust after field calibration)
 VCC = 5.0  # Supply voltage in volts

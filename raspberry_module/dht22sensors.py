@@ -3,7 +3,7 @@ import board
 import adafruit_dht
 
 # Set up the DHT22 sensor
-DHT_PIN = board.D4  # GPIO4 (Pin 7)
+DHT_PIN = board.D17  # GPIO17 (Pin 11)
 dht_sensor = adafruit_dht.DHT22(DHT_PIN)
 
 def read_sensor():

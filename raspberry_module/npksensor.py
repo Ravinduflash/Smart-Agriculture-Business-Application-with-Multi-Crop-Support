@@ -4,7 +4,7 @@ import binascii
 
 # Configure RS485 communication
 try:
-    ser = serial.Serial('/dev/ttyUSB1', 4800, timeout=5)  # Changed baud rate to 4800
+    ser = serial.Serial('/dev/ttyUSB0', 4800, timeout=5)  # Changed baud rate to 4800
     print("Serial port opened successfully.")
 except Exception as e:
     print(f"Error opening serial port: {e}")

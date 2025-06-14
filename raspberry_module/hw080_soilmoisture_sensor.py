@@ -8,7 +8,7 @@ from datetime import datetime
 # Initialize the I2C bus and ADC
 i2c = busio.I2C(board.SCL, board.SDA)
 ads = ADS.ADS1115(i2c)
-moisture_channel = AnalogIn(ads, ADS.P0)
+moisture_channel = AnalogIn(ads, ADS.P3)
 
 # --- CALIBRATION INSTRUCTIONS ---
 # 1. Place the sensor in completely dry soil and note the raw ADC value.
