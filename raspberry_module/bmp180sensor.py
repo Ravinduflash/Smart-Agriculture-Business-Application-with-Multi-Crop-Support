@@ -1,4 +1,5 @@
 import time
+import sys
 from smbus2 import SMBus
 
 # BMP180 default address and registers
@@ -28,13 +29,25 @@ def read_calibration_data():
     return calib
 
 def read_signed_16bit(register):
-    msb, lsb = bus.read_i2c_block_data(BMP180_I2C_ADDRESS, register, 2)
-    value = (msb << 8) + lsb
-    return value - 65536 if value > 32767 else value
+    for attempt in range(3):
+        try:
+            msb, lsb = bus.read_i2c_block_data(BMP180_I2C_ADDRESS, register, 2)
+            value = (msb << 8) + lsb
+            return value - 65536 if value > 32767 else value
+        except Exception as e:
+            print(f"[I2C ERROR] Failed to read signed 16bit from 0x{register:02X} (attempt {attempt+1}/3): {e}", file=sys.stderr)
+            time.sleep(0.1)
+    raise IOError(f"Failed to read signed 16bit from 0x{register:02X} after 3 attempts.")
 
 def read_unsigned_16bit(register):
-    msb, lsb = bus.read_i2c_block_data(BMP180_I2C_ADDRESS, register, 2)
-    return (msb << 8) + lsb
+    for attempt in range(3):
+        try:
+            msb, lsb = bus.read_i2c_block_data(BMP180_I2C_ADDRESS, register, 2)
+            return (msb << 8) + lsb
+        except Exception as e:
+            print(f"[I2C ERROR] Failed to read unsigned 16bit from 0x{register:02X} (attempt {attempt+1}/3): {e}", file=sys.stderr)
+            time.sleep(0.1)
+    raise IOError(f"Failed to read unsigned 16bit from 0x{register:02X} after 3 attempts.")
 
 # Read raw temperature
 def read_raw_temp():
