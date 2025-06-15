@@ -1,0 +1,23 @@
+channel - Kangkung:- Channel ID: 2989974 API KEY:- Write API Key :- 0X0LJDCLGITJ0BHK
+Read API Keys :- ZTTP6I2AXO85ZEQ7
+f1 -Air Temperature from DHT22
+f2 -Air Humidity from DHT22
+f3 -Water/Soil Temperature from DS18B20
+f4 -Soil Moisture Level from HW-080
+f5 -Light Level from LDR
+f6 -Nitrogen (N) from NPK Sensor
+f7 -Phosphorus (P) from NPK Sensor
+f8 -Potassium (K) from NPK Sensor
+
+API Requests
+Write a Channel Feed
+GET https://api.thingspeak.com/update?api_key=0X0LJDCLGITJ0BHK&field1=0
+
+Read a Channel Feed
+GET https://api.thingspeak.com/channels/2989974/feeds.json?api_key=ZTTP6I2AXO85ZEQ7&results=2
+
+Read a Channel Field
+GET https://api.thingspeak.com/channels/2989974/fields/1.json?api_key=ZTTP6I2AXO85ZEQ7&results=2
+
+Read Channel Status Updates
+GET https://api.thingspeak.com/channels/2989974/status.json?api_key=ZTTP6I2AXO85ZEQ7
