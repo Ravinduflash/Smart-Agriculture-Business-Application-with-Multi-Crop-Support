@@ -6,3 +6,26 @@ smbus2
 pyserial
 adafruit-circuitpython-ds18x20
 adafruit-circuitpython-onewire
+
+# Additional required packages for full functionality
+minimalmodbus
+
+# System and utility packages
+# datetime and threading are built-in Python modules, no need to install
+urllib3
+requests
+setuptools
+
+# Web framework (if planning to use Django web interface)
+# django
+# django-cors-headers
+
+# Data analysis and visualization (optional for advanced features)
+# numpy
+# pandas
+# matplotlib
+# plotly
+
+# Machine learning libraries (optional for ML models mentioned in HTML templates)
+# scikit-learn
+# tensorflow
