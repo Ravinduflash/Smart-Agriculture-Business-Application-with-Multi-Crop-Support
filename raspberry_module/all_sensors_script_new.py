@@ -9,8 +9,7 @@ import adafruit_ads1x15.ads1115 as ADS
 from adafruit_ads1x15.analog_in import AnalogIn
 from smbus2 import SMBus
 import serial
-import adafruit_ds18x20
-from adafruit_onewire.bus import OneWireBus
+import os
 import binascii
 import urllib.request
 import urllib.parse
@@ -94,15 +93,91 @@ def calculate_true_values(calib, raw_temp, raw_pressure):
 
 # --- Hardware Initialization ---
 i2c = busio.I2C(board.SCL, board.SDA)
+# --- DS18B20 Temperature Sensor Functions (Linux 1-Wire) ---
+BASE_DIR = "/sys/bus/w1/devices/"
+
+def find_working_ds18b20_sensor():
+    """Find the first working DS18B20 sensor using Linux 1-Wire interface."""
+    try:
+        devices = os.listdir(BASE_DIR)
+        for d in devices:
+            if d.startswith("28-"):
+                sensor_path = os.path.join(BASE_DIR, d, "w1_slave")
+                temp_path = os.path.join(BASE_DIR, d, "temperature")
+                
+                # Try temperature file first (more reliable)
+                if os.path.exists(temp_path):
+                    try:
+                        with open(temp_path, "r") as f:
+                            temp_str = f.read().strip()
+                        if temp_str and temp_str != "":
+                            return temp_path
+                    except:
+                        pass
+                
+                # Fallback to w1_slave file
+                if os.path.exists(sensor_path):
+                    try:
+                        with open(sensor_path, "r") as f:
+                            content = f.read()
+                        lines = content.strip().split('\n')
+                        if len(lines) >= 2 and "t=" in lines[1] and "YES" in lines[0]:
+                            return sensor_path
+                    except:
+                        pass
+    except:
+        pass
+    return None
+
+def read_ds18b20_temperature(sensor_path):
+    """Read temperature from DS18B20 using Linux 1-Wire interface."""
+    try:
+        with open(sensor_path, "r") as f:
+            content = f.read().strip()
+        
+        if not content:
+            return None
+        
+        # Handle temperature file format (single number)
+        if sensor_path.endswith("temperature"):
+            temp_c = float(content) / 1000.0
+            # Check for realistic readings
+            if -55 <= temp_c <= 125:
+                return temp_c
+            return None
+        
+        # Handle w1_slave file format
+        lines = content.split('\n')
+        if len(lines) < 2 or lines[0].strip()[-3:] != "YES" or "t=" not in lines[1]:
+            return None
+        
+        temp_str = lines[1].split("t=")[-1]
+        temp_c = float(temp_str) / 1000.0
+        
+        # Check for realistic readings
+        if -55 <= temp_c <= 125:
+            return temp_c
+        return None
+        
+    except:
+        return None
+
+# --- Hardware Initialization ---
+i2c = busio.I2C(board.SCL, board.SDA)
 ads = ADS.ADS1115(i2c, address=0x48)
 dht_sensor = adafruit_dht.DHT22(board.D17)
-ow_bus = OneWireBus(board.D4)
+
+# Initialize DS18B20 using Linux 1-Wire interface
 try:
-    devices = ow_bus.scan()
-    ds18 = adafruit_ds18x20.DS18X20(ow_bus, devices[0]) if devices else None
+    ds18_sensor_path = find_working_ds18b20_sensor()
+    if ds18_sensor_path:
+        print(f"DS18B20 sensor found at: {ds18_sensor_path}")
+    else:
+        print("No DS18B20 sensor found")
+        ds18_sensor_path = None
 except Exception as e:
     print(f"Could not initialize DS18B20 sensor: {e}")
-    ds18 = None
+    ds18_sensor_path = None
 
 bus = SMBus(1)
 calib = read_calibration_data(bus)
@@ -189,9 +264,13 @@ def read_dht22():
 def read_ds18b20():
     """Reads DS18B20 water/soil temperature periodically."""
     while True:
-        if ds18:
+        if ds18_sensor_path:
             try:
-                data['water_soil_temp_c'] = f"{ds18.temperature:.2f}"
+                temperature = read_ds18b20_temperature(ds18_sensor_path)
+                if temperature is not None:
+                    data['water_soil_temp_c'] = f"{temperature:.2f}"
+                else:
+                    data['water_soil_temp_c'] = 'N/A'
             except Exception as e:
                 print(f"Error reading DS18B20: {e}")
                 data['water_soil_temp_c'] = 'N/A'
