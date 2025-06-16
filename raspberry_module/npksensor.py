@@ -2,6 +2,10 @@ import serial
 import time
 import binascii
 
+import serial
+import time
+import binascii
+
 # Configure RS485 communication
 try:
     ser = serial.Serial('/dev/ttyUSB0', 4800, timeout=5)  # Changed baud rate to 4800
