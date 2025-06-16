@@ -1,6 +1,0 @@
-{
-  "name": "Copy of Thingspeak Test Smart Agri Dashboard",
-  "description": "A React web application for managing and analyzing agricultural data using IoT sensors and AI insights from Gemini API. It helps farmers monitor crop health, environmental conditions, and make data-driven decisions.",
-  "requestFramePermissions": [],
-  "prompt": ""
-}
