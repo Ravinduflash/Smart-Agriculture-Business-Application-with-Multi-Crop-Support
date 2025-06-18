@@ -481,9 +481,43 @@ def log_to_csv(file_path, data_dict):
 def main():
     print("Starting sensor data collection...")
     start_sensor_threads()
+    
+    # Allow sensors some time to initialize (2 seconds)
+    print("Allowing sensors to initialize...")
+    time.sleep(2)
+    
     try:
+        # Collect and send data immediately on startup
+        print("Collecting initial sensor readings...")
+        data['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        data_copy = data.copy()
+        
+        print("\n" + "=" * 50)
+        print(f"INITIAL Readings at {data_copy['timestamp']}")
+        print("=" * 50)
+        # Print all current readings and their status to the console
+        print(f"Air Temperature: {data_copy.get('air_temp_c', 'N/A')} C")
+        print(f"Air Humidity: {data_copy.get('humidity_percent', 'N/A')} %")
+        print(f"Water/Soil Temperature: {data_copy.get('water_soil_temp_c', 'N/A')} C")
+        print(f"Air Pressure: {data_copy.get('air_pressure_hpa', 'N/A')} hPa (Status: {data_copy.get('air_pressure_status', 'N/A')})") # Updated Print
+        print(f"Soil Moisture: {data_copy.get('soil_moisture_raw', 'N/A')} (Status: {data_copy.get('soil_moisture_status', 'N/A')})")
+        print(f"Light Level: {data_copy.get('light_level_raw', 'N/A')} (Status: {data_copy.get('light_level_status', 'N/A')})")
+        print(f"Rain Level: {data_copy.get('rain_level_raw', 'N/A')} (Status: {data_copy.get('rain_level_status', 'N/A')})")
+        print(f"Nitrogen (N): {data_copy.get('nitrogen_mg_kg', 'N/A')} mg/kg (Status: {data_copy.get('nitrogen_status', 'N/A')})")
+        print(f"Phosphorus (P): {data_copy.get('phosphorus_mg_kg', 'N/A')} mg/kg (Status: {data_copy.get('phosphorus_status', 'N/A')})")
+        print(f"Potassium (K): {data_copy.get('potassium_mg_kg', 'N/A')} mg/kg (Status: {data_copy.get('potassium_status', 'N/A')})")
+        print(f"CO2: {data_copy.get('co2_ppm', 'N/A')} ppm | NH3: {data_copy.get('nh3_ppm', 'N/A')} ppm | VOC: {data_copy.get('voc_ppm', 'N/A')} ppm")
+        print("-" * 50)
+        
+        # --- Send initial data to both destinations ---
+        send_to_thingspeak(THINGSPEAK_API_KEY, data_copy)
+        log_to_csv(CSV_LOG_FILE, data_copy)
+        
+        print("Initial data collection complete. Starting 5-minute interval loop...")
+        
+        # Continue with regular 5-minute intervals
         while True:
-            time.sleep(300) # Collect and send data every 5 minutes (300 seconds)
+            time.sleep(300) # Wait 5 minutes (300 seconds) before next collection
             data['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             data_copy = data.copy()
             

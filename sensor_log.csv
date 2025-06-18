@@ -1,8 +1,1 @@
 timestamp,air_temp_c,humidity_percent,water_soil_temp_c,air_pressure_hpa,soil_moisture_raw,soil_moisture_status,light_level_raw,light_level_status,rain_level_raw,rain_level_status,co2_ppm,nh3_ppm,voc_ppm,nitrogen_mg_kg,nitrogen_status,phosphorus_mg_kg,phosphorus_status,potassium_mg_kg,potassium_status
-2025-06-18 17:30:26,N/A,N/A,28.31,763.89,26075,Dry,14817,Medium Light,26264,Light Rain,1.10,1.59,0.91,0,Low,0,Low,0,Low
-2025-06-18 17:30:58,28.65,85.00,28.31,763.89,26070,Dry,15078,Low Light,26258,Light Rain,1.11,1.60,0.91,0,Low,0,Low,0,Low
-2025-06-18 17:31:29,28.65,85.10,28.31,763.89,26068,Dry,12794,Medium Light,26243,Light Rain,1.10,1.59,0.91,0,Low,0,Low,0,Low
-2025-06-18 17:35:00,28.65,85.20,28.31,763.88,26058,Dry,15369,Low Light,26231,Light Rain,1.12,1.62,0.92,0,Low,0,Low,0,Low
-2025-06-18 17:35:31,28.65,85.10,28.31,763.90,26050,Dry,14885,Medium Light,26228,Light Rain,1.11,1.60,0.91,0,Low,0,Low,0,Low
-2025-06-18 17:50:34,28.65,86.10,28.25,763.99,26032,Dry,16522,Low Light,26234,Light Rain,1.14,1.64,0.94,0,Low,0,Low,0,Low
-2025-06-18 17:51:15,28.65,85.90,28.25,763.94,26032,Dry,16958,Low Light,26233,Light Rain,1.12,1.61,0.92,0,Low,0,Low,0,Low
