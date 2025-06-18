@@ -91,8 +91,6 @@ def calculate_true_values(calib, raw_temp, raw_pressure):
     pressure = pressure / 100.0
     return temperature, pressure
 
-# --- Hardware Initialization ---
-i2c = busio.I2C(board.SCL, board.SDA)
 # --- DS18B20 Temperature Sensor Functions (Linux 1-Wire) ---
 BASE_DIR = "/sys/bus/w1/devices/"
 
@@ -419,7 +417,8 @@ def main():
     
     try:
         while True:
-            time.sleep(15) # ThingSpeak free plan allows updates approx. every 15 seconds
+            # UPDATED: Changed sleep interval to 5 minutes (300 seconds)
+            time.sleep(300) 
             
             data['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             data_copy = data.copy()
