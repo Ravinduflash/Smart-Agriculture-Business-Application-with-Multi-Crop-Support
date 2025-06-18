@@ -78,11 +78,13 @@ MQ135_R0 = 664.75  # UPDATED: Resistance in clean air (kOhms), calculated from y
 # --- 7. NPK Sensor Calibration & Thresholds for Kangkung ---
 # Calibrate against a lab test if possible: OFFSET = (Lab Value - Sensor Value)
 NPK_CALIBRATION_OFFSETS = {"N": 0, "P": 0, "K": 0}
-# Nutrient thresholds for Kangkung (mg/kg). Adjust based on growth observations.
+# UPDATED: Nutrient thresholds specifically for Amaranthus Green (Kangkung), which is a heavy feeder.
+# These values are based on general vegetable guidelines, adjusted for the high nitrogen demand
+# of leafy greens as mentioned in your Amaranthus cultivation document.
 NPK_THRESHOLDS = {
-    "N": {"low": 70, "optimal": 140},
-    "P": {"low": 30, "optimal": 60},
-    "K": {"low": 80, "optimal": 160}
+    "N": {"low": 80, "optimal": 150}, # Kangkung requires high nitrogen for leaf growth.
+    "P": {"low": 40, "optimal": 80},  # Phosphorus is for root and general development.
+    "K": {"low": 80, "optimal": 160}  # Potassium is for overall plant health and resilience.
 }
 
 # =================================================================================
