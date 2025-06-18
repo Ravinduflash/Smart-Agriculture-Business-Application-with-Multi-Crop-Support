@@ -18,6 +18,11 @@ import urllib.parse
 # Your specific ThingSpeak Write API Key.
 THINGSPEAK_API_KEY = "0X0LJDCLGITJ0BHK"
 
+# --- DHT22 Temperature Calibration ---
+# This offset is subtracted from the DHT22 temperature reading to align it with the DS18B20.
+# Based on your readings: DHT22 (29.20C) - DS18B20 (28.75C) = 0.45
+TEMP_OFFSET = -0.45
+
 # --- BMP180 Barometric Pressure Sensor Functions ---
 BMP180_I2C_ADDRESS = 0x77
 BMP180_REG_CONTROL = 0xF4
@@ -244,13 +249,15 @@ def read_bmp180():
         time.sleep(5)
 
 def read_dht22():
-    """Reads DHT22 sensor data periodically."""
+    """Reads DHT22 sensor data periodically and applies calibration."""
     while True:
         try:
-            temperature = dht_sensor.temperature
+            temperature_raw = dht_sensor.temperature
             humidity = dht_sensor.humidity
-            if temperature is not None and humidity is not None:
-                data['air_temp_c'] = f"{temperature:.2f}"
+            if temperature_raw is not None and humidity is not None:
+                # Apply the calibration offset to the temperature
+                temperature_calibrated = temperature_raw + TEMP_OFFSET
+                data['air_temp_c'] = f"{temperature_calibrated:.2f}"
                 data['humidity_percent'] = f"{humidity:.2f}"
             else:
                 data['air_temp_c'], data['humidity_percent'] = 'N/A', 'N/A'
