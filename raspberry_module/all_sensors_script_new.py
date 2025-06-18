@@ -75,16 +75,22 @@ RAIN_MODERATE = 14000      # UPDATED: A value indicating steady rain.
 # in clean outdoor air before taking the reading. If results seem incorrect, re-calibrate.
 MQ135_R0 = 664.75  # UPDATED: Resistance in clean air (kOhms), calculated from your ADC value.
 
-# --- 7. NPK Sensor Calibration & Thresholds for Kangkung ---
+# --- 7. NPK Sensor Calibration & Thresholds for Amaranthus ---
 # Calibrate against a lab test if possible: OFFSET = (Lab Value - Sensor Value)
 NPK_CALIBRATION_OFFSETS = {"N": 0, "P": 0, "K": 0}
-# UPDATED: Nutrient thresholds specifically for Amaranthus Green (Kangkung), which is a heavy feeder.
-# These values are based on general vegetable guidelines, adjusted for the high nitrogen demand
-# of leafy greens as mentioned in your Amaranthus cultivation document.
+# UPDATED: Nutrient thresholds specifically for Amaranthus, based on the
+# Sri Lankan Department of Agriculture (DOA) recommendations in the provided guide.
+# These values are in mg/kg.
 NPK_THRESHOLDS = {
-    "N": {"low": 80, "optimal": 150}, # Kangkung requires high nitrogen for leaf growth.
-    "P": {"low": 40, "optimal": 80},  # Phosphorus is for root and general development.
-    "K": {"low": 80, "optimal": 160}  # Potassium is for overall plant health and resilience.
+    # Amaranthus has a high nitrogen demand for leafy growth. The DOA recommends
+    # a total of 170 kg/ha of Urea (a nitrogen fertilizer).
+    "N": {"low": 60, "optimal": 120},
+
+    # Phosphorus is essential for root development. The DOA recommends 130 kg/ha of TSP.
+    "P": {"low": 25, "optimal": 50},
+
+    # Potassium supports overall plant health and resilience. The DOA recommends 100 kg/ha of MOP.
+    "K": {"low": 50, "optimal": 100}
 }
 
 # =================================================================================
