@@ -324,7 +324,7 @@ function CropManagementPage(): JSX.Element {
 
       <div className="mt-10 pt-6 border-t border-gray-200">
         <h2 className="text-2xl font-semibold text-textDark mb-3 flex items-center">
-          {t('cropManagement.recommendation.engineTitle')} <span role="img" aria-label="sparkles" className="ml-2">✨</span>
+          {t('cropManagement.recommendation.engineTitle')} <span role="img" aria-label="sparkles" className="ml-2"></span>
         </h2>
         <p className="text-textMedium mb-6">
           {t('cropManagement.recommendation.engineSubtitle')}
@@ -379,7 +379,7 @@ function CropManagementPage(): JSX.Element {
                 disabled={isLoadingRecommendations || (useLiveData && isLoadingLiveData)}
                 className="w-full bg-primary hover:bg-primary-dark text-white font-semibold px-6 py-3 rounded-lg shadow-md transition-colors duration-150 ease-in-out disabled:opacity-70 flex items-center justify-center text-base"
             >
-                {isLoadingRecommendations ? <Spinner size="sm" color="text-white" /> : (<><span role="img" aria-label="sparkles" className="mr-2">✨</span> {t('cropManagement.recommendation.button.getRecommendations')}</>)}
+                {isLoadingRecommendations ? <Spinner size="sm" color="text-white" /> : (<><span role="img" aria-label="sparkles" className="mr-2"></span> {t('cropManagement.recommendation.button.getRecommendations')}</>)}
             </button>
           </div>
         </div>
