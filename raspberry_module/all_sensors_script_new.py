@@ -14,15 +14,70 @@ import binascii
 import urllib.request
 import urllib.parse
 
-# --- UPDATED ThingSpeak Configuration ---
-# Your specific ThingSpeak Write API Key.
+# =================================================================================
+# --- CALIBRATION AND THRESHOLDS CONFIGURATION ---
+# =================================================================================
+# Instructions: Update the values in this section to match your specific sensors,
+# crop (Kangkung), and environment for accurate readings and status reports.
+# ---------------------------------------------------------------------------------
+
+# --- ThingSpeak Configuration ---
 THINGSPEAK_API_KEY = "0X0LJDCLGITJ0BHK"
 
-# --- DHT22 Temperature Calibration ---
-# This offset is subtracted from the DHT22 temperature reading to align it with the DS18B20.
-# Based on your readings: DHT22 (29.20C) - DS18B20 (28.75C) = 0.45
-TEMP_OFFSET = -0.45
+# --- 1. Temperature & Humidity Calibration ---
+# Compare DHT22 to the more precise DS18B20 and adjust the offset.
+# TEMP_OFFSET = (DS18B20 Reading - DHT22 Reading)
+TEMP_OFFSET = -0.45  # Based on your previous readings (28.75 - 29.20)
+DS18B20_OFFSET = 0.0 # Calibrate DS18B20 against a reference thermometer if needed.
 
+# --- 2. Air Pressure Calibration ---
+# Compare BMP180 to a local weather station report (QNH).
+# AIR_PRESSURE_OFFSET = (Official Pressure - Sensor Pressure)
+AIR_PRESSURE_OFFSET = 0.0 # e.g., 2.5
+
+# --- 3. Soil Moisture Thresholds (Raw ADC Values) ---
+# Find these values by testing the sensor in dry soil and in a cup of water.
+# Note: Lower ADC value means WETTER soil.
+SOIL_MOISTURE_DRY = 28000       # Value in bone-dry soil/air.
+SOIL_MOISTURE_WET = 15000       # Value when submerged in water.
+SOIL_THRESHOLDS = {"low": 25000, "optimal": 18000} # Dry if > low, Optimal if < low and > optimal, Wet if < optimal.
+
+# --- 4. Light Level Thresholds (Raw ADC Values) ---
+# Find these values by testing the LDR in darkness and bright light.
+# Note: Lower ADC value means BRIGHTER light.
+LDR_VERY_DARK = 20000
+LDR_LOW_LIGHT = 15000
+LDR_MEDIUM_LIGHT = 10000
+
+# --- 5. Rain Sensor Thresholds (Raw ADC Values) ---
+# Find these values by testing the sensor when dry and with different amounts of water.
+# Note: Lower ADC value means MORE rain.
+RAIN_DRY = 28000
+RAIN_LIGHT = 25000
+RAIN_MODERATE = 20000
+
+# --- 6. Gas Sensor (MQ135) Calibration ---
+# IMPORTANT: Find this value by running the sensor in fresh, clean outdoor air for 20-30 mins
+# and recording the stable "Rs" value from the console.
+MQ135_R0 = 76.63  # Resistance in clean air (kOhms). UPDATE THIS.
+
+# --- 7. NPK Sensor Calibration & Thresholds for Kangkung ---
+# Calibrate against a lab test if possible: OFFSET = (Lab Value - Sensor Value)
+NPK_CALIBRATION_OFFSETS = {"N": 0, "P": 0, "K": 0}
+# Nutrient thresholds for Kangkung (mg/kg). Adjust based on growth observations.
+NPK_THRESHOLDS = {
+    "N": {"low": 70, "optimal": 140},
+    "P": {"low": 30, "optimal": 60},
+    "K": {"low": 80, "optimal": 160}
+}
+
+# =================================================================================
+# --- SENSOR HARDWARE AND COMMUNICATION SETUP ---
+# =================================================================================
+
+# --- Sensor Reading Functions (No changes needed below unless hardware changes) ---
+
+#<editor-fold desc="Sensor Reading and Helper Functions">
 # --- BMP180 Barometric Pressure Sensor Functions ---
 BMP180_I2C_ADDRESS = 0x77
 BMP180_REG_CONTROL = 0xF4
@@ -31,18 +86,15 @@ BMP180_COMMAND_TEMP = 0x2E
 BMP180_COMMAND_PRESSURE = 0x34
 
 def read_signed_16bit(bus, register):
-    """Reads a signed 16-bit value from the I2C bus."""
     msb, lsb = bus.read_i2c_block_data(BMP180_I2C_ADDRESS, register, 2)
     value = (msb << 8) + lsb
     return value - 65536 if value > 32767 else value
 
 def read_unsigned_16bit(bus, register):
-    """Reads an unsigned 16-bit value from the I2C bus."""
     msb, lsb = bus.read_i2c_block_data(BMP180_I2C_ADDRESS, register, 2)
     return (msb << 8) + lsb
 
 def read_calibration_data(bus):
-    """Reads the calibration data from the BMP180 sensor."""
     calib = {}
     calib['AC1'] = read_signed_16bit(bus, 0xAA)
     calib['AC2'] = read_signed_16bit(bus, 0xAC)
@@ -58,21 +110,18 @@ def read_calibration_data(bus):
     return calib
 
 def read_raw_temp(bus):
-    """Reads the raw temperature value from the BMP180."""
     bus.write_byte_data(BMP180_I2C_ADDRESS, BMP180_REG_CONTROL, BMP180_COMMAND_TEMP)
     time.sleep(0.005)
     msb, lsb = bus.read_i2c_block_data(BMP180_I2C_ADDRESS, BMP180_REG_RESULT, 2)
     return (msb << 8) + lsb
 
 def read_raw_pressure(bus):
-    """Reads the raw pressure value from the BMP180."""
     bus.write_byte_data(BMP180_I2C_ADDRESS, BMP180_REG_CONTROL, BMP180_COMMAND_PRESSURE)
     time.sleep(0.005)
     msb, lsb, xlsb = bus.read_i2c_block_data(BMP180_I2C_ADDRESS, BMP180_REG_RESULT, 3)
     return ((msb << 16) + (lsb << 8) + xlsb) >> 8
 
 def calculate_true_values(calib, raw_temp, raw_pressure):
-    """Calculates the true temperature and pressure from raw values using calibration data."""
     X1 = ((raw_temp - calib['AC6']) * calib['AC5']) >> 15
     X2 = (calib['MC'] << 11) // (X1 + calib['MD']) if (X1 + calib['MD']) != 0 else 0
     B5 = X1 + X2
@@ -100,69 +149,33 @@ def calculate_true_values(calib, raw_temp, raw_pressure):
 BASE_DIR = "/sys/bus/w1/devices/"
 
 def find_working_ds18b20_sensor():
-    """Find the first working DS18B20 sensor using Linux 1-Wire interface."""
     try:
         devices = os.listdir(BASE_DIR)
         for d in devices:
             if d.startswith("28-"):
-                sensor_path = os.path.join(BASE_DIR, d, "w1_slave")
                 temp_path = os.path.join(BASE_DIR, d, "temperature")
-                
-                # Try temperature file first (more reliable)
-                if os.path.exists(temp_path):
-                    try:
-                        with open(temp_path, "r") as f:
-                            temp_str = f.read().strip()
-                        if temp_str and temp_str != "":
-                            return temp_path
-                    except:
-                        pass
-                
-                # Fallback to w1_slave file
-                if os.path.exists(sensor_path):
-                    try:
-                        with open(sensor_path, "r") as f:
-                            content = f.read()
-                        lines = content.strip().split('\n')
-                        if len(lines) >= 2 and "t=" in lines[1] and "YES" in lines[0]:
-                            return sensor_path
-                    except:
-                        pass
-    except:
+                if os.path.exists(temp_path): return temp_path
+                w1_slave_path = os.path.join(BASE_DIR, d, "w1_slave")
+                if os.path.exists(w1_slave_path): return w1_slave_path
+    except Exception:
         pass
     return None
 
 def read_ds18b20_temperature(sensor_path):
-    """Read temperature from DS18B20 using Linux 1-Wire interface."""
     try:
         with open(sensor_path, "r") as f:
             content = f.read().strip()
-        
-        if not content:
-            return None
-        
-        # Handle temperature file format (single number)
+        if not content: return None
         if sensor_path.endswith("temperature"):
             temp_c = float(content) / 1000.0
-            # Check for realistic readings
-            if -55 <= temp_c <= 125:
-                return temp_c
-            return None
-        
-        # Handle w1_slave file format
-        lines = content.split('\n')
-        if len(lines) < 2 or lines[0].strip()[-3:] != "YES" or "t=" not in lines[1]:
-            return None
-        
-        temp_str = lines[1].split("t=")[-1]
-        temp_c = float(temp_str) / 1000.0
-        
-        # Check for realistic readings
-        if -55 <= temp_c <= 125:
-            return temp_c
-        return None
-        
-    except:
+        else:
+            lines = content.split('\n')
+            if len(lines) < 2 or lines[0].strip()[-3:] != "YES" or "t=" not in lines[1]:
+                return None
+            temp_str = lines[1].split("t=")[-1]
+            temp_c = float(temp_str) / 1000.0
+        return temp_c if -55 <= temp_c <= 125 else None
+    except Exception:
         return None
 
 # --- Hardware Initialization ---
@@ -170,17 +183,9 @@ i2c = busio.I2C(board.SCL, board.SDA)
 ads = ADS.ADS1115(i2c, address=0x48)
 dht_sensor = adafruit_dht.DHT22(board.D17)
 
-# Initialize DS18B20 using Linux 1-Wire interface
-try:
-    ds18_sensor_path = find_working_ds18b20_sensor()
-    if ds18_sensor_path:
-        print(f"DS18B20 sensor found at: {ds18_sensor_path}")
-    else:
-        print("No DS18B20 sensor found")
-        ds18_sensor_path = None
-except Exception as e:
-    print(f"Could not initialize DS18B20 sensor: {e}")
-    ds18_sensor_path = None
+ds18_sensor_path = find_working_ds18b20_sensor()
+if ds18_sensor_path: print(f"DS18B20 sensor found at: {ds18_sensor_path}")
+else: print("No DS18B20 sensor found")
 
 bus = SMBus(1)
 calib = read_calibration_data(bus)
@@ -197,132 +202,129 @@ rain_channel = AnalogIn(ads, ADS.P2)
 moisture_channel = AnalogIn(ads, ADS.P3)
 
 # --- MQ135 Gas Sensor Calibration Constants ---
-VCC = 5.0
-RL = 10.0
-R0 = 76.63
+VCC = 5.0; RL = 10.0
 GAS_CALIBRATION = {
     'CO2': {'a': 116.6020682, 'b': -2.769034857},
     'NH3': {'a': 102.2, 'b': -2.473},
     'VOC': {'a': 110.47, 'b': -2.854}
 }
+#</editor-fold>
 
-# --- Shared Data Dictionary & Locks ---
-# Using more descriptive keys for clarity.
+# =================================================================================
+# --- DATA STORAGE AND THINGSPeAK MAPPING ---
+# =================================================================================
+
 data = {
     'timestamp': None, 'air_temp_c': 'N/A', 'humidity_percent': 'N/A',
     'water_soil_temp_c': 'N/A', 'air_pressure_hpa': 'N/A',
-    'soil_moisture_raw': 'N/A', 'light_level_raw': 'N/A',
-    'rain_level_raw': 'N/A', 'co2_ppm': 'N/A', 'nh3_ppm': 'N/A',
-    'voc_ppm': 'N/A', 'nitrogen_mg_kg': 'N/A', 'phosphorus_mg_kg': 'N/A',
-    'potassium_mg_kg': 'N/A'
+    'soil_moisture_raw': 'N/A', 'soil_moisture_status': 'N/A',
+    'light_level_raw': 'N/A', 'light_level_status': 'N/A',
+    'rain_level_raw': 'N/A', 'rain_level_status': 'N/A',
+    'co2_ppm': 'N/A', 'nh3_ppm': 'N/A', 'voc_ppm': 'N/A',
+    'nitrogen_mg_kg': 'N/A', 'nitrogen_status': 'N/A',
+    'phosphorus_mg_kg': 'N/A', 'phosphorus_status': 'N/A',
+    'potassium_mg_kg': 'N/A', 'potassium_status': 'N/A'
 }
 i2c_lock = threading.Lock()
 serial_lock = threading.Lock()
 
-# --- ThingSpeak Field Mapping ---
-# This mapping matches the fields you specified for your "Kangkung" channel.
 thingspeak_field_mapping = {
-    'air_temp_c': 'field1',         # Air Temperature from DHT22
-    'humidity_percent': 'field2',   # Air Humidity from DHT22
-    'water_soil_temp_c': 'field3',  # Water/Soil Temperature from DS18B20
-    'soil_moisture_raw': 'field4',  # Soil Moisture Level from HW-080
-    'light_level_raw': 'field5',    # Light Level from LDR
-    'nitrogen_mg_kg': 'field6',     # Nitrogen (N) from NPK Sensor
-    'phosphorus_mg_kg': 'field7',   # Phosphorus (P) from NPK Sensor
-    'potassium_mg_kg': 'field8',    # Potassium (K) from NPK Sensor
+    'air_temp_c': 'field1', 'humidity_percent': 'field2',
+    'water_soil_temp_c': 'field3', 'soil_moisture_raw': 'field4',
+    'light_level_raw': 'field5', 'nitrogen_mg_kg': 'field6',
+    'phosphorus_mg_kg': 'field7', 'potassium_mg_kg': 'field8',
 }
 
-# --- Sensor Reading Functions ---
+# =================================================================================
+# --- SENSOR READING AND INTERPRETATION THREADS ---
+# =================================================================================
 
+#<editor-fold desc="Sensor Reading Threads">
 def read_bmp180():
-    """Reads BMP180 sensor data periodically for air pressure."""
     while True:
         with i2c_lock:
             try:
-                raw_temp = read_raw_temp(bus) # Still need raw temp for pressure calculation
+                raw_temp = read_raw_temp(bus)
                 raw_pressure = read_raw_pressure(bus)
-                _, pressure = calculate_true_values(calib, raw_temp, raw_pressure)
-                data['air_pressure_hpa'] = f"{pressure:.2f}"
+                _, pressure_raw = calculate_true_values(calib, raw_temp, raw_pressure)
+                data['air_pressure_hpa'] = f"{(pressure_raw + AIR_PRESSURE_OFFSET):.2f}"
             except Exception as e:
-                print(f"Error reading BMP180: {e}")
                 data['air_pressure_hpa'] = 'N/A'
         time.sleep(5)
 
 def read_dht22():
-    """Reads DHT22 sensor data periodically and applies calibration."""
     while True:
         try:
             temperature_raw = dht_sensor.temperature
             humidity = dht_sensor.humidity
             if temperature_raw is not None and humidity is not None:
-                # Apply the calibration offset to the temperature
-                temperature_calibrated = temperature_raw + TEMP_OFFSET
-                data['air_temp_c'] = f"{temperature_calibrated:.2f}"
+                data['air_temp_c'] = f"{(temperature_raw + TEMP_OFFSET):.2f}"
                 data['humidity_percent'] = f"{humidity:.2f}"
             else:
                 data['air_temp_c'], data['humidity_percent'] = 'N/A', 'N/A'
         except Exception as e:
-            print(f"Error reading DHT22: {e}")
             data['air_temp_c'], data['humidity_percent'] = 'N/A', 'N/A'
         time.sleep(5)
 
 def read_ds18b20():
-    """Reads DS18B20 water/soil temperature periodically."""
     while True:
         if ds18_sensor_path:
             try:
-                temperature = read_ds18b20_temperature(ds18_sensor_path)
-                if temperature is not None:
-                    data['water_soil_temp_c'] = f"{temperature:.2f}"
+                temp_raw = read_ds18b20_temperature(ds18_sensor_path)
+                if temp_raw is not None:
+                    data['water_soil_temp_c'] = f"{(temp_raw + DS18B20_OFFSET):.2f}"
                 else:
                     data['water_soil_temp_c'] = 'N/A'
             except Exception as e:
-                print(f"Error reading DS18B20: {e}")
                 data['water_soil_temp_c'] = 'N/A'
         else:
             data['water_soil_temp_c'] = 'N/A'
         time.sleep(5)
 
 def read_soil_moisture():
-    """Reads soil moisture sensor data periodically."""
     while True:
         with i2c_lock:
             try:
-                data['soil_moisture_raw'] = str(moisture_channel.value)
+                raw_value = moisture_channel.value
+                data['soil_moisture_raw'] = str(raw_value)
+                if raw_value > SOIL_THRESHOLDS["low"]: status = "Dry"
+                elif raw_value > SOIL_THRESHOLDS["optimal"]: status = "Optimal"
+                else: status = "Wet"
+                data['soil_moisture_status'] = status
             except Exception as e:
-                print(f"Error reading Soil Moisture: {e}")
-                data['soil_moisture_raw'] = 'N/A'
+                data['soil_moisture_raw'], data['soil_moisture_status'] = 'N/A', 'N/A'
         time.sleep(5)
 
 def read_ldr():
-    """Reads LDR light level data periodically."""
     while True:
         with i2c_lock:
             try:
-                data['light_level_raw'] = str(ldr_channel.value)
+                raw_value = ldr_channel.value
+                data['light_level_raw'] = str(raw_value)
+                if raw_value > LDR_VERY_DARK: status = "Very Dark"
+                elif raw_value > LDR_LOW_LIGHT: status = "Low Light"
+                elif raw_value > LDR_MEDIUM_LIGHT: status = "Medium Light"
+                else: status = "Bright Light"
+                data['light_level_status'] = status
             except Exception as e:
-                print(f"Error reading LDR: {e}")
-                data['light_level_raw'] = 'N/A'
+                data['light_level_raw'], data['light_level_status'] = 'N/A', 'N/A'
         time.sleep(5)
 
 def read_mq135():
-    """Reads MQ135 gas sensor data periodically."""
     while True:
         with i2c_lock:
             try:
                 voltage = mq135_channel.voltage
                 rs = (VCC - voltage) / voltage * RL if voltage > 0 else float('inf')
-                ratio = rs / R0 if R0 > 0 else float('inf')
-                data['co2_ppm'] = f"{GAS_CALIBRATION['CO2']['a'] * (ratio ** GAS_CALIBRATION['CO2']['b']):.2f}"
-                data['nh3_ppm'] = f"{GAS_CALIBRATION['NH3']['a'] * (ratio ** GAS_CALIBRATION['NH3']['b']):.2f}"
-                data['voc_ppm'] = f"{GAS_CALIBRATION['VOC']['a'] * (ratio ** GAS_CALIBRATION['VOC']['b']):.2f}"
+                ratio = rs / MQ135_R0 if MQ135_R0 > 0 else float('inf')
+                data['co2_ppm'] = f"{GAS_CALIBRATION['CO2']['a'] * (abs(ratio) ** GAS_CALIBRATION['CO2']['b']):.2f}"
+                data['nh3_ppm'] = f"{GAS_CALIBRATION['NH3']['a'] * (abs(ratio) ** GAS_CALIBRATION['NH3']['b']):.2f}"
+                data['voc_ppm'] = f"{GAS_CALIBRATION['VOC']['a'] * (abs(ratio) ** GAS_CALIBRATION['VOC']['b']):.2f}"
             except Exception as e:
-                print(f"Error reading MQ135: {e}")
                 data['co2_ppm'], data['nh3_ppm'], data['voc_ppm'] = 'N/A', 'N/A', 'N/A'
         time.sleep(5)
 
 def calculate_crc(data_bytes):
-    """Calculates CRC16 for Modbus communication."""
     crc = 0xFFFF
     for pos in data_bytes:
         crc ^= pos
@@ -335,76 +337,77 @@ def calculate_crc(data_bytes):
     return crc.to_bytes(2, byteorder='little')
 
 def read_npk():
-    """Reads NPK sensor data periodically via Modbus."""
     queries = {"N": b"\x01\x03\x00\x1E\x00\x01", "P": b"\x01\x03\x00\x1F\x00\x01", "K": b"\x01\x03\x00\x20\x00\x01"}
-    data_keys = {'N': 'nitrogen_mg_kg', 'P': 'phosphorus_mg_kg', 'K': 'potassium_mg_kg'}
+    data_keys = {'N': ('nitrogen_mg_kg', 'nitrogen_status'), 'P': ('phosphorus_mg_kg', 'phosphorus_status'), 'K': ('potassium_mg_kg', 'potassium_status')}
     while True:
         with serial_lock:
             if ser:
                 try:
-                    for nutrient, query in queries.items():
-                        full_query = query + calculate_crc(query)
+                    for nutrient, (value_key, status_key) in data_keys.items():
+                        full_query = queries[nutrient] + calculate_crc(queries[nutrient])
                         ser.write(full_query)
                         time.sleep(0.2)
                         response = ser.read(7)
                         if len(response) >= 7:
-                            value = int.from_bytes(response[3:5], byteorder='big')
-                            data[data_keys[nutrient]] = str(value)
+                            raw_value = int.from_bytes(response[3:5], byteorder='big')
+                            calibrated_value = raw_value + NPK_CALIBRATION_OFFSETS[nutrient]
+                            data[value_key] = str(calibrated_value)
+                            if calibrated_value < NPK_THRESHOLDS[nutrient]["low"]: status = "Low"
+                            elif calibrated_value <= NPK_THRESHOLDS[nutrient]["optimal"]: status = "Optimal"
+                            else: status = "High"
+                            data[status_key] = status
                         else:
-                            data[data_keys[nutrient]] = 'N/A'
+                            data[value_key], data[status_key] = 'N/A', 'N/A'
                         time.sleep(1)
                 except Exception as e:
-                    print(f"Error reading NPK: {e}")
-                    data['nitrogen_mg_kg'], data['phosphorus_mg_kg'], data['potassium_mg_kg'] = 'N/A', 'N/A', 'N/A'
+                    for _, (value_key, status_key) in data_keys.items(): data[value_key], data[status_key] = 'N/A', 'N/A'
             else:
-                 data['nitrogen_mg_kg'], data['phosphorus_mg_kg'], data['potassium_mg_kg'] = 'N/A', 'N/A', 'N/A'
+                for _, (value_key, status_key) in data_keys.items(): data[value_key], data[status_key] = 'N/A', 'N/A'
         time.sleep(5)
 
 def read_rain():
-    """Reads rain sensor data periodically."""
     while True:
         with i2c_lock:
             try:
-                data['rain_level_raw'] = str(rain_channel.value)
+                raw_value = rain_channel.value
+                data['rain_level_raw'] = str(raw_value)
+                if raw_value > RAIN_DRY: status = "Dry"
+                elif raw_value > RAIN_LIGHT: status = "Light Rain"
+                elif raw_value > RAIN_MODERATE: status = "Moderate Rain"
+                else: status = "Heavy Rain"
+                data['rain_level_status'] = status
             except Exception as e:
-                print(f"Error reading Rain Sensor: {e}")
-                data['rain_level_raw'] = 'N/A'
+                data['rain_level_raw'], data['rain_level_status'] = 'N/A', 'N/A'
         time.sleep(5)
+#</editor-fold>
 
-# --- Main Application Logic ---
+# =================================================================================
+# --- MAIN APPLICATION LOGIC ---
+# =================================================================================
 
 def start_sensor_threads():
-    """Creates and starts all sensor reading threads."""
     threads = [
-        threading.Thread(target=read_bmp180, daemon=True),
-        threading.Thread(target=read_dht22, daemon=True),
-        threading.Thread(target=read_ds18b20, daemon=True),
-        threading.Thread(target=read_soil_moisture, daemon=True),
-        threading.Thread(target=read_ldr, daemon=True),
-        threading.Thread(target=read_mq135, daemon=True),
-        threading.Thread(target=read_npk, daemon=True),
-        threading.Thread(target=read_rain, daemon=True)
+        threading.Thread(target=read_bmp180, daemon=True), threading.Thread(target=read_dht22, daemon=True),
+        threading.Thread(target=read_ds18b20, daemon=True), threading.Thread(target=read_soil_moisture, daemon=True),
+        threading.Thread(target=read_ldr, daemon=True), threading.Thread(target=read_mq135, daemon=True),
+        threading.Thread(target=read_npk, daemon=True), threading.Thread(target=read_rain, daemon=True)
     ]
     for t in threads:
         t.start()
     print("All sensor threads started.")
 
 def send_to_thingspeak(api_key, sensor_data):
-    """Formats and sends data to ThingSpeak based on the field mapping."""
     base_url = "https://api.thingspeak.com/update"
     payload = {'api_key': api_key}
-    
     for key, field in thingspeak_field_mapping.items():
         if key in sensor_data and sensor_data[key] != 'N/A':
             try:
                 payload[field] = float(sensor_data[key])
             except (ValueError, TypeError):
-                print(f"Warning: Could not convert '{sensor_data[key]}' for {key} to float. Skipping for ThingSpeak.")
-    
+                print(f"Warning: Could not convert '{sensor_data[key]}' for {key}. Skipping.")
     if len(payload) <= 1:
         print("No valid numeric data to send to ThingSpeak.")
         return
-
     try:
         params = urllib.parse.urlencode(payload)
         full_url = f"{base_url}?{params}"
@@ -413,35 +416,35 @@ def send_to_thingspeak(api_key, sensor_data):
             if response.status == 200 and response_text != "0":
                 print(f"Data sent to ThingSpeak. Entry ID: {response_text}")
             else:
-                print(f"Failed to send data to ThingSpeak. Response: {response_text} (Code: {response.status})")
+                print(f"Failed to send to ThingSpeak. Response: {response_text} (Code: {response.status})")
     except Exception as e:
         print(f"Error sending data to ThingSpeak: {e}")
 
 def main():
-    """Main function to run the application."""
     print("Starting sensor data collection...")
     start_sensor_threads()
-    
     try:
         while True:
-            # UPDATED: Changed sleep interval to 5 minutes (300 seconds)
-            time.sleep(300) 
-            
+            time.sleep(300) # Collect and send data every 5 minutes (300 seconds)
             data['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             data_copy = data.copy()
-            
-            # Print all current readings to the console for local monitoring
-            print("-" * 40)
+            print("\n" + "=" * 50)
             print(f"Readings at {data_copy['timestamp']}")
-            print("-" * 40)
-            for key, value in data_copy.items():
-                 # Don't print the timestamp twice
-                if key != 'timestamp':
-                    # Format the key for better readability
-                    formatted_key = key.replace('_', ' ').title()
-                    print(f"{formatted_key:<22}: {value}")
+            print("=" * 50)
+            # Print all current readings and their status to the console
+            print(f"Air Temperature: {data_copy.get('air_temp_c', 'N/A')} C")
+            print(f"Air Humidity: {data_copy.get('humidity_percent', 'N/A')} %")
+            print(f"Water/Soil Temperature: {data_copy.get('water_soil_temp_c', 'N/A')} C")
+            print(f"Air Pressure: {data_copy.get('air_pressure_hpa', 'N/A')} hPa")
+            print(f"Soil Moisture: {data_copy.get('soil_moisture_raw', 'N/A')} (Status: {data_copy.get('soil_moisture_status', 'N/A')})")
+            print(f"Light Level: {data_copy.get('light_level_raw', 'N/A')} (Status: {data_copy.get('light_level_status', 'N/A')})")
+            print(f"Rain Level: {data_copy.get('rain_level_raw', 'N/A')} (Status: {data_copy.get('rain_level_status', 'N/A')})")
+            print(f"Nitrogen (N): {data_copy.get('nitrogen_mg_kg', 'N/A')} mg/kg (Status: {data_copy.get('nitrogen_status', 'N/A')})")
+            print(f"Phosphorus (P): {data_copy.get('phosphorus_mg_kg', 'N/A')} mg/kg (Status: {data_copy.get('phosphorus_status', 'N/A')})")
+            print(f"Potassium (K): {data_copy.get('potassium_mg_kg', 'N/A')} mg/kg (Status: {data_copy.get('potassium_status', 'N/A')})")
+            print(f"CO2: {data_copy.get('co2_ppm', 'N/A')} ppm | NH3: {data_copy.get('nh3_ppm', 'N/A')} ppm | VOC: {data_copy.get('voc_ppm', 'N/A')} ppm")
+            print("-" * 50)
             
-            # Send the selected 8 fields to ThingSpeak
             send_to_thingspeak(THINGSPEAK_API_KEY, data_copy)
 
     except KeyboardInterrupt:
