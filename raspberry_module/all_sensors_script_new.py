@@ -13,6 +13,7 @@ import os
 import binascii
 import urllib.request
 import urllib.parse
+import csv # NEW: Imported the csv library for file logging
 
 # =================================================================================
 # --- CALIBRATION AND THRESHOLDS CONFIGURATION ---
@@ -20,6 +21,9 @@ import urllib.parse
 # Instructions: Update the values in this section to match your specific sensors,
 # crop (Kangkung), and environment for accurate readings and status reports.
 # ---------------------------------------------------------------------------------
+
+# --- Local Data Logging Configuration ---
+CSV_LOG_FILE = "sensor_log.csv" # The name of the CSV file to store all sensor readings
 
 # --- ThingSpeak Configuration ---
 THINGSPEAK_API_KEY = "0X0LJDCLGITJ0BHK"
@@ -420,6 +424,37 @@ def send_to_thingspeak(api_key, sensor_data):
     except Exception as e:
         print(f"Error sending data to ThingSpeak: {e}")
 
+# NEW: Function to log data to a local CSV file
+def log_to_csv(file_path, data_dict):
+    """Appends a row of sensor data to the specified CSV file."""
+    # Define the order of columns for the CSV file
+    csv_columns = [
+        'timestamp', 'air_temp_c', 'humidity_percent', 'water_soil_temp_c', 'air_pressure_hpa',
+        'soil_moisture_raw', 'soil_moisture_status', 'light_level_raw', 'light_level_status',
+        'rain_level_raw', 'rain_level_status', 'co2_ppm', 'nh3_ppm', 'voc_ppm', 'nitrogen_mg_kg',
+        'nitrogen_status', 'phosphorus_mg_kg', 'phosphorus_status', 'potassium_mg_kg', 'potassium_status'
+    ]
+    
+    try:
+        # Check if the file exists to determine if we need to write the header
+        file_exists = os.path.isfile(file_path)
+        
+        with open(file_path, mode='a', newline='') as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=csv_columns)
+            
+            # If the file is new, write the header row first
+            if not file_exists:
+                writer.writeheader()
+            
+            # Write the sensor data row
+            writer.writerow({k: data_dict.get(k, 'N/A') for k in csv_columns})
+        
+        print(f"Data successfully logged to {file_path}")
+
+    except IOError as e:
+        print(f"Error logging data to CSV file: {e}")
+
+
 def main():
     print("Starting sensor data collection...")
     start_sensor_threads()
@@ -428,6 +463,7 @@ def main():
             time.sleep(300) # Collect and send data every 5 minutes (300 seconds)
             data['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             data_copy = data.copy()
+            
             print("\n" + "=" * 50)
             print(f"Readings at {data_copy['timestamp']}")
             print("=" * 50)
@@ -445,7 +481,9 @@ def main():
             print(f"CO2: {data_copy.get('co2_ppm', 'N/A')} ppm | NH3: {data_copy.get('nh3_ppm', 'N/A')} ppm | VOC: {data_copy.get('voc_ppm', 'N/A')} ppm")
             print("-" * 50)
             
+            # --- Send data to both destinations ---
             send_to_thingspeak(THINGSPEAK_API_KEY, data_copy)
+            log_to_csv(CSV_LOG_FILE, data_copy) # NEW: Call the function to log to CSV
 
     except KeyboardInterrupt:
         print("\nProgram stopped by user.")
