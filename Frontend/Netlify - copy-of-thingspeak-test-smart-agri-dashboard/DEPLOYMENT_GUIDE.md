@@ -20,11 +20,7 @@ Before deploying, you MUST set up the environment variable in Netlify:
 2. Navigate to Site settings > Environment variables
 3. Add the following environment variable:
    - **Variable name**: `GEMINI_API_KEY`
-<<<<<<< HEAD
    - **Value**: `xxxxxxxxxxxxxxxxxxxxxxxxxx`
-=======
-   - **Value**: `xxxxxxxxxxxxxxxxxx`
->>>>>>> 0096587de56f32ab8c8536becb7b6a63ca308b78
 
 #### 2. Deploy to Netlify
 
