@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Routes, Route, Outlet } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import DashboardPage from './pages/DashboardPage';
@@ -9,11 +8,13 @@ import IoTSensorsPage from './pages/IoTSensorsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import NotificationsPage from './pages/NotificationsPage';
 import SettingsPage from './pages/SettingsPage';
-import MLModelsPage from './pages/MLModelsPage'; // Import the new page
-import SmartHelpDesk from './components/SmartHelpDesk';
+import MLModelsPage from './pages/MLModelsPage';
+import SmartHelpDesk_Trained from './components/SmartHelpDesk_Trained';
+import TrainingManager from './components/TrainingManager';
 
 const App: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showTrainingManager, setShowTrainingManager] = useState(false);
 
   return (
     <div className="flex h-screen bg-background">
@@ -42,16 +43,39 @@ const App: React.FC = () => {
             <Route path="/crop-management" element={<CropManagementPage />} />
             <Route path="/iot-sensors" element={<IoTSensorsPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
-            <Route path="/ml-models" element={<MLModelsPage />} /> {/* Add new route */}
+            <Route path="/ml-models" element={<MLModelsPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Routes>
-          <Outlet />
         </main>
       </div>
       
-      {/* Smart Help Desk - Global floating component */}
-      <SmartHelpDesk />
+      {/* Smart Help Desk - Global floating chatbot */}
+      <SmartHelpDesk_Trained />
+      
+      {/* Training Manager Modal */}
+      {showTrainingManager && (
+        <TrainingManager onClose={() => setShowTrainingManager(false)} />
+      )}
+      
+      {/* Admin Training Access - Press Ctrl+Shift+T */}
+      <div 
+        className="fixed bottom-4 left-4 z-40"
+        onKeyDown={(e) => {
+          if (e.ctrlKey && e.shiftKey && e.key === 'T') {
+            setShowTrainingManager(true);
+          }
+        }}
+        tabIndex={0}
+      >
+        <button
+          onClick={() => setShowTrainingManager(true)}
+          className="bg-purple-500 text-white px-3 py-1 rounded text-xs hover:bg-purple-600 transition-colors"
+          title="Train Chatbot (Ctrl+Shift+T)"
+        >
+          🧠 Train Bot
+        </button>
+      </div>
     </div>
   );
 };

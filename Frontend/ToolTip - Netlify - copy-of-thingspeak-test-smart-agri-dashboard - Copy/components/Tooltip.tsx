@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useContext } from 'react';
-import { LanguageContext } from '../contexts/LanguageContext';
+import { tooltipManager } from '../utils/tooltipManager';
 
 interface TooltipProps {
   content: string;
@@ -21,9 +20,43 @@ const Tooltip: React.FC<TooltipProps> = ({
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [isTooltipEnabled, setIsTooltipEnabled] = useState(() => tooltipManager.getEnabled());
   const timeoutRef = useRef<NodeJS.Timeout>();
   const tooltipRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const mountedRef = useRef(true);
+
+  // Subscribe to tooltip manager state changes
+  useEffect(() => {
+    mountedRef.current = true;
+    
+    const handleTooltipStateChange = (event: CustomEvent) => {
+      if (mountedRef.current) {
+        setIsTooltipEnabled(event.detail.enabled);
+      }
+    };
+
+    // Listen for tooltip state changes
+    window.addEventListener('tooltipStateChanged', handleTooltipStateChange as EventListener);
+    
+    return () => {
+      mountedRef.current = false;
+      window.removeEventListener('tooltipStateChanged', handleTooltipStateChange as EventListener);
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  // If tooltips are disabled globally, don't show anything
+  if (!isTooltipEnabled) {
+    return <>{children}</>;
+  }
 
   const calculatePosition = (event: React.MouseEvent) => {
     if (!containerRef.current) return;
@@ -88,14 +121,6 @@ const Tooltip: React.FC<TooltipProps> = ({
       calculatePosition(event);
     }
   };
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
 
   const getTooltipClasses = () => {
     const baseClasses = `

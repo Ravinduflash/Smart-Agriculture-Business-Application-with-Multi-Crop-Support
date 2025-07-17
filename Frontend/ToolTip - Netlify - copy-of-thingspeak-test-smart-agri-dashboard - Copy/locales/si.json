@@ -26,6 +26,9 @@
   "header.dropdown.logout": "ඉවත්වන්න",
   "header.changeLanguage": "භාෂාව වෙනස් කරන්න",
   "header.viewNotifications": "දැනුම්දීම් බලන්න",
+  "header.toggleTooltips": "ටූල්ටිප් ක්‍රියා කරන්න",
+  "header.enableTooltips": "අලුත් භාවිතා කරන්නන්ට උපකාරී ටූල්ටිප් සක්‍රිය කරන්න",
+  "header.disableTooltips": "පළපුරුදු භාවිතා කරන්නන්ට ටූල්ටිප් අක්‍රිය කරන්න",
 
   "language.english": "English",
   "language.sinhala": "සිංහල",

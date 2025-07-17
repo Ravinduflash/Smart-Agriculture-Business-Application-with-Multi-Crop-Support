@@ -2,7 +2,6 @@
 
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { CropInfoRequest, OptimalConditions, DataInsightRequest, CropRecommendation, LanguageCode, SoilMoistureStatusType, GeneralSensorStatus } from '../types'; // Added LanguageCode
-import { LANGUAGES } from '../constants'; // To get full language names if needed
 
 // Assuming translations for prompts are managed by the calling component or a translation service
 // For simplicity, we'll append a language instruction directly here.
@@ -23,7 +22,7 @@ const getLanguageInstruction = (lang: LanguageCode, t: (key: string) => string):
   return t(`gemini.languageInstruction.${lang}`);
 };
 
-const parseJsonFromText = <T,>(text: string, t: (key: string, replacements?: Record<string, string | number>) => string): T | null => {
+const parseJsonFromText = <T,>(text: string): T | null => {
   let jsonStr = text.trim();
   const fenceRegex = /^```(\w*)?\s*\n?(.*?)\n?\s*```$/s;
   const match = jsonStr.match(fenceRegex);
@@ -66,7 +65,7 @@ export const getCropOptimalConditions = async (
 
   const languageInstruction = getLanguageInstruction(lang, t);
   
-  const basePrompt = t('gemini.cropOptimalConditions.prompt', { cropName: request.cropName });
+  const basePrompt = t('gemini.cropOptimalConditions.prompt', { cropName: request.cropName || '' });
   const fullPrompt = `${basePrompt}${languageInstruction}`;
 
   try {
@@ -78,13 +77,13 @@ export const getCropOptimalConditions = async (
       }
     });
     
-    const textResponse = response.text;
-    const parsedJson = parseJsonFromText<OptimalConditions>(textResponse, t);
+    const textResponse = response.text || '';
+    const parsedJson = parseJsonFromText<OptimalConditions>(textResponse);
 
     if (parsedJson) {
       return parsedJson;
     } else {
-      return t('gemini.common.error.parseError', { rawResponse: textResponse });
+      return t('gemini.common.error.parseError', { rawResponse: textResponse || '' });
     }
 
   } catch (error) {
@@ -111,8 +110,8 @@ export const generateDataInsights = async (
   
   const languageInstruction = getLanguageInstruction(lang, t);
   const basePrompt = t('gemini.dataInsights.prompt', {
-    yieldDataString,
-    moistureDataString,
+    yieldDataString: yieldDataString || '',
+    moistureDataString: moistureDataString || '',
     pestDataString: pestDataString ? `- ${pestDataString}` : ''
   });
   const fullPrompt = `${basePrompt}${languageInstruction}`;
@@ -123,7 +122,7 @@ export const generateDataInsights = async (
       model: TEXT_MODEL,
       contents: fullPrompt,
     });
-    return response.text;
+    return response.text || null;
   } catch (error) {
     console.error("Error generating data insights from Gemini:", error);
     const detail = getDetailedErrorMessage(error);
@@ -142,9 +141,9 @@ export const getFarmingAdvice = async (
 
   const languageInstruction = getLanguageInstruction(lang, t);
   const basePrompt = t('gemini.farmingAdvice.prompt', { // This key's content in locale files will be updated
-    cropName,
-    temp: String(currentConditions.temp),
-    moistureStatusKey: currentConditions.moistureStatusKey // Pass the status key
+    cropName: cropName || '',
+    temp: String(currentConditions.temp || 0),
+    moistureStatusKey: currentConditions.moistureStatusKey || '' // Pass the status key
   });
   const fullPrompt = `${basePrompt}${languageInstruction}`;
   
@@ -170,9 +169,9 @@ export const getAICropRecommendations = async (
 
   const languageInstruction = getLanguageInstruction(lang, t);
   const basePrompt = t('gemini.aiCropRecommendations.prompt', {
-      temperature: String(conditions.temperature),
-      moisture: String(conditions.moisture),
-      ph: String(conditions.ph)
+      temperature: String(conditions.temperature || 0),
+      moisture: String(conditions.moisture || 0),
+      ph: String(conditions.ph || 0)
   });
   const fullPrompt = `${basePrompt}${languageInstruction}`;
 
@@ -236,7 +235,7 @@ export const generateCropImage = async (
     return t('gemini.common.error.apiKeyMissing.image');
   }
 
-  const prompt = t('gemini.generateCropImage.prompt', { cropName });
+  const prompt = t('gemini.generateCropImage.prompt', { cropName: cropName || '' });
 
   try {
     const response = await ai.models.generateImages({
@@ -266,7 +265,7 @@ export const getSmartHelpDeskResponse = async (
   if (!ai) return t('gemini.common.error.apiKeyMissing');
 
   const languageInstruction = getLanguageInstruction(lang, t);
-  const basePrompt = t('gemini.smartHelpDesk.prompt', { question });
+  const basePrompt = t('gemini.smartHelpDesk.prompt', { question: question || '' });
   const fullPrompt = `${basePrompt}${languageInstruction}`;
 
   try {
@@ -277,6 +276,102 @@ export const getSmartHelpDeskResponse = async (
     return response.text;
   } catch (error) {
     console.error("Error getting smart help desk response:", error);
+    const detail = getDetailedErrorMessage(error);
+    return `${t('gemini.common.error.fetchError')} Details: ${detail}`;
+  }
+};
+
+export const getContextualHelpResponse = async (
+    elementName: string,
+    elementDescription: string,
+    category: string,
+    contextData: any,
+    lang: LanguageCode,
+    t: (key: string, replacements?: Record<string, string | number>) => string
+  ): Promise<string | null> => {
+  if (!ai) return t('gemini.common.error.apiKeyMissing');
+
+  const languageInstruction = getLanguageInstruction(lang, t);
+  
+  // Create a context-aware prompt based on the element type
+  let contextualPrompt = '';
+  
+  switch (category) {
+    case 'sensor':
+      contextualPrompt = `You are a friendly agricultural expert. A user needs help understanding a sensor reading on their smart agriculture dashboard. 
+      They have clicked on "${elementName}" which is ${elementDescription}. 
+      ${contextData ? `Current data: ${JSON.stringify(contextData)}` : ''}
+      
+      Please provide a clear, educational explanation of:
+      1. What this sensor measures and why it's important for farming
+      2. How to interpret the current readings
+      3. What actions they might take based on these readings
+      4. Any relevant farming tips or best practices
+      
+      Keep your response conversational and practical for farmers.`;
+      break;
+      
+    case 'chart':
+      contextualPrompt = `You are a friendly agricultural expert. A user needs help understanding a chart on their smart agriculture dashboard. 
+      They have clicked on "${elementName}" which shows ${elementDescription}. 
+      ${contextData ? `Chart data context: ${JSON.stringify(contextData)}` : ''}
+      
+      Please provide a clear explanation of:
+      1. What this chart represents and why it's useful
+      2. How to read and interpret the data trends
+      3. What patterns or changes they should watch for
+      4. How this information can help with farming decisions
+      
+      Keep your response practical and easy to understand.`;
+      break;
+      
+    case 'card':
+      contextualPrompt = `You are a friendly agricultural expert. A user needs help understanding a data card on their smart agriculture dashboard. 
+      They have clicked on "${elementName}" which displays ${elementDescription}. 
+      ${contextData ? `Card data: ${JSON.stringify(contextData)}` : ''}
+      
+      Please provide a helpful explanation of:
+      1. What this metric represents and its significance
+      2. How to interpret the current value or status
+      3. What actions they might consider based on this information
+      4. How this connects to overall farm management
+      
+      Keep your response friendly and actionable.`;
+      break;
+      
+    case 'widget':
+      contextualPrompt = `You are a friendly agricultural expert. A user needs help understanding a widget on their smart agriculture dashboard. 
+      They have clicked on "${elementName}" which is ${elementDescription}. 
+      ${contextData ? `Widget context: ${JSON.stringify(contextData)}` : ''}
+      
+      Please provide a clear explanation of:
+      1. What this widget does and its purpose
+      2. How to use or interact with it effectively
+      3. What benefits it provides for farm management
+      4. Any tips for getting the most out of this feature
+      
+      Keep your response user-friendly and practical.`;
+      break;
+      
+    default:
+      contextualPrompt = `You are a friendly agricultural expert. A user needs help understanding an element on their smart agriculture dashboard. 
+      They have clicked on "${elementName}" which is ${elementDescription}. 
+      ${contextData ? `Context: ${JSON.stringify(contextData)}` : ''}
+      
+      Please provide a helpful explanation of this element and how it relates to their farming operations.
+      Keep your response clear, practical, and encouraging.`;
+  }
+
+  const fullPrompt = `${contextualPrompt}${languageInstruction}`;
+
+  try {
+    const response: GenerateContentResponse = await ai.models.generateContent({
+      model: TEXT_MODEL,
+      contents: fullPrompt,
+    });
+    return response.text || null;
+  } catch (error) {
+    console.error("Error getting contextual help response:", error);
     const detail = getDetailedErrorMessage(error);
     return `${t('gemini.common.error.fetchError')} Details: ${detail}`;
   }

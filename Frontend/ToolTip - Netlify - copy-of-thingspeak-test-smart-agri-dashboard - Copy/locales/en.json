@@ -26,6 +26,9 @@
   "header.dropdown.logout": "Logout",
   "header.changeLanguage": "Change Language",
   "header.viewNotifications": "View notifications",
+  "header.toggleTooltips": "Toggle Tooltips",
+  "header.enableTooltips": "Enable helpful tooltips for new users",
+  "header.disableTooltips": "Disable tooltips for experienced users",
 
   "language.english": "English",
   "language.sinhala": "Sinhala",

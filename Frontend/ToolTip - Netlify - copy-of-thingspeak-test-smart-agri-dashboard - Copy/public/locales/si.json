@@ -299,6 +299,9 @@
   "gemini.smartHelpDesk.prompt": "You are a friendly agricultural expert and assistant for a Smart Agriculture Dashboard. A user has asked the following question about their smart farming dashboard: '{{question}}'. Please provide a helpful, informative response that explains the feature or concept in simple terms that a farmer can understand. Focus on practical benefits and how it helps with farming decisions. If the question is about dashboard metrics, explain what the numbers mean and how to interpret them. If it's about charts or data, explain how to read them and what actions to take based on the information. Keep your response conversational and farmer-friendly.",
 
   "smartHelpDesk.title": "ස්මාර්ට් සහාය මධ්‍යස්ථානය",
+  "smartHelpDesk.helpModeActive": "උපකාර ප්‍රකාරය සක්‍රියයි - වැඩි විස්තර දැනගැනීමට ඕනෑම අංගයක් මත ක්ලික් කරන්න",
+  "smartHelpDesk.activateHelp": "උපකාර ප්‍රකාරය",
+  "smartHelpDesk.deactivateHelp": "උපකාරය නවත්වන්න",
   "smartHelpDesk.openChat": "ස්මාර්ට් සහාය මධ්‍යස්ථානය විවෘත කරන්න",
   "smartHelpDesk.closeChat": "චැට් එක වසන්න",
   "smartHelpDesk.resetChat": "චැට් එක නැවත සකසන්න",

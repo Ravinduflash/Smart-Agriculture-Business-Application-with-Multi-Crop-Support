@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
@@ -137,7 +135,7 @@ const DashboardPage: React.FC = () => {
   };
 
   const handleSeeMoreClick = (sensorType?: SensorType) => {
-    navigate(sensorType ? `/iot-sensors#${sensorType}` : '/iot-sensors');
+    navigate(sensorType ? `/iot-sensors?sensor=${encodeURIComponent(sensorType)}` : '/iot-sensors');
   };
   
   const getTranslatedStatus = (statusKey: Sensor['status']): string => {
@@ -200,48 +198,54 @@ const DashboardPage: React.FC = () => {
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {soilMoistureSensor && (
-          <DashboardCard 
-            title={t('dashboard.soilMoisture')} 
-            value={getCardValue(soilMoistureSensor.currentValue)} 
-            unit={"ADC"} 
-            status={getTranslatedStatus(soilMoistureSensor.status)} 
-            statusTextColorClass={getStatusTextColorClass(soilMoistureSensor.status)}
-            icon={<IconWaterDrop className="w-8 h-8" />} 
-            detailsLinkText={t('dashboard.seeMore')}
-            onDetailsLinkClick={() => handleSeeMoreClick(SensorType.SoilMoisture)}
-            sensorType={SensorType.SoilMoisture}
-          />
+          <div data-help-id="soil-moisture-card">
+            <DashboardCard 
+              title={t('dashboard.soilMoisture')} 
+              value={getCardValue(soilMoistureSensor.currentValue)} 
+              unit={"ADC"} 
+              status={getTranslatedStatus(soilMoistureSensor.status)} 
+              statusTextColorClass={getStatusTextColorClass(soilMoistureSensor.status)}
+              icon={<IconWaterDrop className="w-8 h-8" />} 
+              detailsLinkText={t('dashboard.seeMore')}
+              onDetailsLinkClick={() => handleSeeMoreClick(SensorType.SoilMoisture)}
+              sensorType={SensorType.SoilMoisture}
+            />
+          </div>
         )}
         {temperatureSensor && (
-          <DashboardCard 
-            title={t('dashboard.temperature')} 
-            value={getCardValue(temperatureSensor.currentValue)} 
-            unit={getCardUnit(temperatureSensor.unit)} 
-            status={getTranslatedStatus(temperatureSensor.status)}
-            statusTextColorClass={getStatusTextColorClass(temperatureSensor.status)}
-            icon={<IconSun className="w-8 h-8" />} 
-            detailsLinkText={t('dashboard.seeMore')}
-            onDetailsLinkClick={() => handleSeeMoreClick(SensorType.Temperature)}
-            sensorType={SensorType.Temperature}
-          />
+          <div data-help-id="temperature-card">
+            <DashboardCard 
+              title={t('dashboard.temperature')} 
+              value={getCardValue(temperatureSensor.currentValue)} 
+              unit={getCardUnit(temperatureSensor.unit)} 
+              status={getTranslatedStatus(temperatureSensor.status)}
+              statusTextColorClass={getStatusTextColorClass(temperatureSensor.status)}
+              icon={<IconSun className="w-8 h-8" />} 
+              detailsLinkText={t('dashboard.seeMore')}
+              onDetailsLinkClick={() => handleSeeMoreClick(SensorType.Temperature)}
+              sensorType={SensorType.Temperature}
+            />
+          </div>
         )}
         {humiditySensor && (
-          <DashboardCard 
-            title={t('dashboard.humidity')} 
-            value={getCardValue(humiditySensor.currentValue)} 
-            unit={getCardUnit(humiditySensor.unit)} 
-            status={getTranslatedStatus(humiditySensor.status)}
-            statusTextColorClass={getStatusTextColorClass(humiditySensor.status)}
-            icon={<IconLeaf className="w-8 h-8" />} 
-            detailsLinkText={t('dashboard.seeMore')}
-            onDetailsLinkClick={() => handleSeeMoreClick(SensorType.Humidity)}
-            sensorType={SensorType.Humidity}
-          />
+          <div data-help-id="humidity-card">
+            <DashboardCard 
+              title={t('dashboard.humidity')} 
+              value={getCardValue(humiditySensor.currentValue)} 
+              unit={getCardUnit(humiditySensor.unit)} 
+              status={getTranslatedStatus(humiditySensor.status)}
+              statusTextColorClass={getStatusTextColorClass(humiditySensor.status)}
+              icon={<IconLeaf className="w-8 h-8" />} 
+              detailsLinkText={t('dashboard.seeMore')}
+              onDetailsLinkClick={() => handleSeeMoreClick(SensorType.Humidity)}
+              sensorType={SensorType.Humidity}
+            />
+          </div>
         )}
       </div>
 
       {(isLoadingAdvice || farmingAdvice || (!isLoadingSensors && !farmingAdvice)) && (
-          <div className="bg-card p-6 rounded-xl shadow-lg">
+          <div data-help-id="ai-farming-advisor" className="bg-card p-6 rounded-xl shadow-lg">
             <h3 className="text-lg font-semibold text-textDark mb-2">{t('dashboard.aiFarmingAdvisor')}</h3>
             {isLoadingAdvice && <Spinner />}
             {!isLoadingAdvice && farmingAdvice && <GeminiResponseDisplay response={farmingAdvice} />}
@@ -252,40 +256,44 @@ const DashboardPage: React.FC = () => {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        <ChartCard 
-          title={t('dashboard.yieldPrediction')} 
-          subtitle={t('dashboard.yieldPrediction.subtitle')}
-          tooltipContent="This chart shows predicted crop yields based on current growing conditions. Use these predictions to plan harvesting and market timing."
-        >
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={yieldPrediction} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-              <XAxis dataKey="name" tick={{ fill: '#6B7280', fontSize: 12 }} />
-              <YAxis tick={{ fill: '#6B7280', fontSize: 12 }} />
-              <RechartsTooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #ccc', borderRadius: '4px' }} />
-              <Legend wrapperStyle={{ fontSize: '12px' }} />
-              <Line type="monotone" dataKey="value" name={t('dashboard.charts.legend.predictedYield')} stroke="#10B981" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </ChartCard>
+        <div data-help-id="yield-prediction-chart">
+          <ChartCard 
+            title={t('dashboard.yieldPrediction')} 
+            subtitle={t('dashboard.yieldPrediction.subtitle')}
+            tooltipContent="This chart shows predicted crop yields based on current growing conditions. Use these predictions to plan harvesting and market timing."
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={yieldPrediction} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                <XAxis dataKey="name" tick={{ fill: '#6B7280', fontSize: 12 }} />
+                <YAxis tick={{ fill: '#6B7280', fontSize: 12 }} />
+                <RechartsTooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #ccc', borderRadius: '4px' }} />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
+                <Line type="monotone" dataKey="value" name={t('dashboard.charts.legend.predictedYield')} stroke="#10B981" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </div>
 
-        <ChartCard 
-          title={t('dashboard.diseaseDetection')} 
-          subtitle={t('dashboard.diseaseDetection.subtitle')}
-          tooltipContent="This chart shows the health status of your crops. Green indicates healthy plants, while red shows potential disease issues that need attention."
-        >
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie data={diseaseData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} labelLine={false} label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`} >
-                {diseaseData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <RechartsTooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #ccc', borderRadius: '4px' }} />
-              <Legend wrapperStyle={{ fontSize: '12px' }} />
-            </PieChart>
-          </ResponsiveContainer>
-        </ChartCard>
+        <div data-help-id="disease-detection-chart">
+          <ChartCard 
+            title={t('dashboard.diseaseDetection')} 
+            subtitle={t('dashboard.diseaseDetection.subtitle')}
+            tooltipContent="This chart shows the health status of your crops. Green indicates healthy plants, while red shows potential disease issues that need attention."
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={diseaseData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} labelLine={false} label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`} >
+                  {diseaseData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <RechartsTooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #ccc', borderRadius: '4px' }} />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </div>
         
         <div className="lg:col-span-2 bg-card p-6 rounded-xl shadow-lg">
           <button
@@ -324,27 +332,29 @@ const DashboardPage: React.FC = () => {
           )}
         </div>
 
-        <ChartCard 
-          title={t('dashboard.soilQualityOverview')} 
-          subtitle={t('dashboard.soilQualityOverview.subtitle')} 
-          className="lg:col-span-2"
-          tooltipContent="This chart shows different aspects of your soil quality as percentages. Higher percentages indicate better soil conditions for crop growth."
-        >
-            <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={soilQualityData} layout="horizontal" margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                    <XAxis dataKey="name" type="category" tick={{ fill: '#6B7280', fontSize: 12 }} />
-                    <YAxis type="number" tick={{ fill: '#6B7280', fontSize: 12 }} domain={[0, 100]} unit="%"/>
-                    <RechartsTooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #ccc', borderRadius: '4px' }}/>
-                    <Legend wrapperStyle={{ fontSize: '12px' }} />
-                    <Bar dataKey="value" name={t('dashboard.charts.legend.qualityScore')} radius={[4, 4, 0, 0]}>
-                         {soilQualityData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                    </Bar>
-                </BarChart>
-            </ResponsiveContainer>
-        </ChartCard>
+        <div data-help-id="soil-quality-chart" className="lg:col-span-2">
+          <ChartCard 
+            title={t('dashboard.soilQualityOverview')} 
+            subtitle={t('dashboard.soilQualityOverview.subtitle')} 
+            className="lg:col-span-2"
+            tooltipContent="This chart shows different aspects of your soil quality as percentages. Higher percentages indicate better soil conditions for crop growth."
+          >
+              <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={soilQualityData} layout="horizontal" margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                      <XAxis dataKey="name" type="category" tick={{ fill: '#6B7280', fontSize: 12 }} />
+                      <YAxis type="number" tick={{ fill: '#6B7280', fontSize: 12 }} domain={[0, 100]} unit="%"/>
+                      <RechartsTooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #ccc', borderRadius: '4px' }}/>
+                      <Legend wrapperStyle={{ fontSize: '12px' }} />
+                      <Bar dataKey="value" name={t('dashboard.charts.legend.qualityScore')} radius={[4, 4, 0, 0]}>
+                           {soilQualityData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                      </Bar>
+                  </BarChart>
+              </ResponsiveContainer>
+          </ChartCard>
+        </div>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 
 
 import React, { useState, useEffect, useContext, useRef, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, AreaChart, Area } from 'recharts';
 import { Sensor, SensorType, SensorDataPoint, SoilMoistureStatusType, TemperatureStatusType, HumidityStatusType, SoilTemperatureStatusType, LightIntensityStatusType, RainLevelStatusType, AirPressureStatusType, GasLevelsStatusType, NPKStatusType, GeneralSensorStatus, generalSensorStatusValues } from '../types';
 import { getMockSensors } from '../services/mockDataService';
@@ -42,7 +42,7 @@ const IoTSensorsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   
   const chartCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const location = useLocation(); 
+  const [searchParams] = useSearchParams(); 
 
   const mapCompositeSensorToNA = (type: SensorType, tFunc: (key: string) => string, originalValue?: any): Record<string, string | number> => {
       const na = tFunc('common.na');
@@ -118,18 +118,18 @@ const IoTSensorsPage: React.FC = () => {
   }, [loadSensorData]); 
 
   useEffect(() => {
-    if (!isLoading && location.hash) {
-      const sensorTypeFromHash = location.hash.substring(1) as SensorType;
-      if (sensorTypeFromHash && chartCardRefs.current[sensorTypeFromHash]) {
+    if (!isLoading) {
+      const sensorTypeFromParams = searchParams.get('sensor') as SensorType;
+      if (sensorTypeFromParams && chartCardRefs.current[sensorTypeFromParams]) {
         setTimeout(() => { 
-          chartCardRefs.current[sensorTypeFromHash]?.scrollIntoView({
+          chartCardRefs.current[sensorTypeFromParams]?.scrollIntoView({
             behavior: 'smooth',
             block: 'nearest',
           });
         }, 100);
       }
     }
-  }, [isLoading, location.hash]);
+  }, [isLoading, searchParams]);
 
 
   const handleSensorCardInteraction = (sensorType: SensorType) => {
@@ -399,25 +399,27 @@ const IoTSensorsPage: React.FC = () => {
                 const isComposite = sensor.type === SensorType.NPKSensor || sensor.type === SensorType.GasLevels;
                 const hasHistoricalChart = sensorsForHistoricalCharts.some(histSensor => histSensor.type === sensor.type);
                 const sensorTitle = getTranslatedSensorType(sensor.type);
+                const sensorHelpId = `sensor-${sensor.type.toLowerCase().replace(/\s+/g, '-')}-card`;
                 
                 return (
-                    <DashboardCard 
-                        key={sensor.id}
-                        title={sensorTitle}
-                        value={getCardValue(sensor, isComposite)}
-                        unit={getCardUnit(sensor, isComposite)}
-                        status={getTranslatedStatus(sensor.status)}
-                        statusTextColorClass={getStatusTextColorClass(sensor.status)}
-                        icon={getSensorIcon(sensor.type)}
-                        onCardClick={hasHistoricalChart ? () => handleSensorCardInteraction(sensor.type) : undefined}
-                        chartActionIcon={hasHistoricalChart ? <IconChartBar className="w-5 h-5" /> : undefined}
-                        onChartActionClick={hasHistoricalChart ? () => handleSensorCardInteraction(sensor.type) : undefined}
-                        chartActionIconAriaLabel={hasHistoricalChart ? t('iotSensors.actions.viewChart', { sensorName: sensorTitle }) : undefined}
-                        sensorType={sensor.type}
-                        tooltipContent={getSensorTooltip(sensor.type)}
-                    >
-                        {isComposite && renderCompositeSensorDetails(sensor)}
-                    </DashboardCard>
+                    <div key={sensor.id} data-help-id={sensorHelpId}>
+                        <DashboardCard 
+                            title={sensorTitle}
+                            value={getCardValue(sensor, isComposite)}
+                            unit={getCardUnit(sensor, isComposite)}
+                            status={getTranslatedStatus(sensor.status)}
+                            statusTextColorClass={getStatusTextColorClass(sensor.status)}
+                            icon={getSensorIcon(sensor.type)}
+                            onCardClick={hasHistoricalChart ? () => handleSensorCardInteraction(sensor.type) : undefined}
+                            chartActionIcon={hasHistoricalChart ? <IconChartBar className="w-5 h-5" /> : undefined}
+                            onChartActionClick={hasHistoricalChart ? () => handleSensorCardInteraction(sensor.type) : undefined}
+                            chartActionIconAriaLabel={hasHistoricalChart ? t('iotSensors.actions.viewChart', { sensorName: sensorTitle }) : undefined}
+                            sensorType={sensor.type}
+                            tooltipContent={getSensorTooltip(sensor.type)}
+                        >
+                            {isComposite && renderCompositeSensorDetails(sensor)}
+                        </DashboardCard>
+                    </div>
                 );
             })}
           </div>          {sensorsForHistoricalCharts.length > 0 && (
@@ -436,8 +438,10 @@ const IoTSensorsPage: React.FC = () => {
                   </defs>
                 </svg>
                 {sensorsForHistoricalCharts.map(sensor => {
+                  const chartHelpId = `chart-${sensor.type.toLowerCase().replace(/\s+/g, '-')}`;
+                  
                   if (!sensor.historicalData || sensor.historicalData.length === 0) return (
-                    <div key={`${sensor.id}-chart-wrapper-nodata`} ref={el => { chartCardRefs.current[sensor.type] = el; }} className="w-full">
+                    <div key={`${sensor.id}-chart-wrapper-nodata`} ref={el => { chartCardRefs.current[sensor.type] = el; }} className="w-full" data-help-id={chartHelpId}>
                       <ChartCard 
                         title={getTranslatedSensorType(sensor.type)} 
                         subtitle={t('common.na')}
@@ -452,7 +456,7 @@ const IoTSensorsPage: React.FC = () => {
                   const ChartComponent = config.chartType === 'LineChart' ? LineChart : AreaChart;
 
                   return (
-                    <div key={`${sensor.id}-chart-wrapper`} ref={el => { chartCardRefs.current[sensor.type] = el; }} className="w-full">
+                    <div key={`${sensor.id}-chart-wrapper`} ref={el => { chartCardRefs.current[sensor.type] = el; }} className="w-full" data-help-id={chartHelpId}>
                         <ChartCard 
                           title={t(config.titleKey)} 
                           subtitle={t(config.subtitleKey, config.subtitleValues)}

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { IconHelp, IconClose, IconSend } from '../constants';
-import { getSmartHelpDeskResponse } from '../services/geminiService';
+import { getSmartHelpDeskResponse, getContextualHelpResponse } from '../services/geminiService';
 import { LanguageContext } from '../contexts/LanguageContext';
+import { useHelpMode, HelpableElement } from '../contexts/HelpModeContext';
 import Spinner from './Spinner';
 import GeminiResponseDisplay from './GeminiResponseDisplay';
 
@@ -18,6 +19,13 @@ interface SmartHelpDeskProps {
 
 const SmartHelpDesk: React.FC<SmartHelpDeskProps> = ({ className = '' }) => {
   const { t, currentLanguage } = useContext(LanguageContext);
+  const { 
+    isHelpModeActive, 
+    setHelpModeActive, 
+    activeHelpElement, 
+    setActiveHelpElement 
+  } = useHelpMode();
+  
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -127,20 +135,102 @@ const SmartHelpDesk: React.FC<SmartHelpDeskProps> = ({ className = '' }) => {
   };
 
   const toggleChat = () => {
-    setIsOpen(!isOpen);
+    const newIsOpen = !isOpen;
+    setIsOpen(newIsOpen);
+    
+    // Only activate help mode when chat is opened, don't automatically activate when toggling
+    if (newIsOpen) {
+      // Don't automatically activate help mode - let user choose
+      setHelpModeActive(false);
+    } else {
+      // Deactivate help mode when chat is closed
+      setHelpModeActive(false);
+      setActiveHelpElement(null);
+    }
+  };
+
+  // Function to toggle help mode independently
+  const toggleHelpMode = () => {
+    const newHelpModeActive = !isHelpModeActive;
+    setHelpModeActive(newHelpModeActive);
+    
+    if (!newHelpModeActive) {
+      setActiveHelpElement(null);
+    }
+  };
+
+  // Handle contextual help when an element is clicked in help mode
+  useEffect(() => {
+    if (activeHelpElement && isOpen) {
+      handleContextualHelp(activeHelpElement);
+    }
+  }, [activeHelpElement, isOpen]);
+
+  const handleContextualHelp = async (element: HelpableElement) => {
+    if (element.id === 'not-helpable') {
+      const notHelpableMessage: Message = {
+        id: Date.now().toString(),
+        text: element.description,
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, notHelpableMessage]);
+      return;
+    }
+
+    setIsLoading(true);
+    setShowPreMadeQuestions(false);
+
+    try {
+      const contextualResponse = await getContextualHelpResponse(
+        element.name,
+        element.description,
+        element.category,
+        element.contextData,
+        currentLanguage,
+        t
+      );
+      
+      const helpMessage: Message = {
+        id: Date.now().toString(),
+        text: contextualResponse || t('smartHelpDesk.error.noResponse') || 'I apologize, but I cannot provide help for this element at this time.',
+        isUser: false,
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, helpMessage]);
+    } catch (error) {
+      console.error('Error getting contextual help:', error);
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        text: t('smartHelpDesk.error.generalError') || 'I apologize, but I encountered an error. Please try again.',
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+      setActiveHelpElement(null);
+    }
   };
 
   const resetChat = () => {
     setMessages([]);
     setShowPreMadeQuestions(true);
     setInputValue('');
+    setHelpModeActive(false);  // Also deactivate help mode when resetting
+    setActiveHelpElement(null);
   };
 
   return (
     <div className={`fixed z-50 ${className}`}>
       {/* Floating Action Button */}
       <button
-        onClick={toggleChat}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleChat();
+        }}
         className="fixed bottom-6 right-6 bg-primary hover:bg-primary-dark text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 z-50"
         aria-label={t('smartHelpDesk.openChat') || 'Open Smart Help Desk'}
       >
@@ -152,10 +242,28 @@ const SmartHelpDesk: React.FC<SmartHelpDeskProps> = ({ className = '' }) => {
         <div className="fixed bottom-20 right-6 w-96 max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-8rem)] bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col z-40">
           {/* Header */}
           <div className="bg-primary text-white p-4 rounded-t-xl flex justify-between items-center">
-            <h3 className="font-semibold text-lg">
-              {t('smartHelpDesk.title') || 'Smart Help Desk'}
-            </h3>
+            <div className="flex flex-col">
+              <h3 className="font-semibold text-lg">
+                {t('smartHelpDesk.title') || 'Smart Help Desk'}
+              </h3>
+              {isHelpModeActive && (
+                <p className="text-sm text-blue-100 mt-1">
+                  {t('smartHelpDesk.helpModeActive') || 'Help mode active - Click on any element to learn more'}
+                </p>
+              )}
+            </div>
             <div className="flex items-center space-x-2">
+              <button
+                onClick={toggleHelpMode}
+                className={`px-3 py-1 rounded text-sm transition-colors ${
+                  isHelpModeActive 
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                    : 'bg-blue-100 hover:bg-blue-200 text-blue-800'
+                }`}
+                aria-label={isHelpModeActive ? 'Deactivate help mode' : 'Activate help mode'}
+              >
+                {isHelpModeActive ? (t('smartHelpDesk.deactivateHelp') || 'Exit Help') : (t('smartHelpDesk.activateHelp') || 'Help Mode')}
+              </button>
               <button
                 onClick={resetChat}
                 className="text-white hover:text-gray-200 transition-colors text-sm"
@@ -164,7 +272,11 @@ const SmartHelpDesk: React.FC<SmartHelpDeskProps> = ({ className = '' }) => {
                 {t('smartHelpDesk.reset') || 'Reset'}
               </button>
               <button
-                onClick={toggleChat}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  toggleChat();
+                }}
                 className="text-white hover:text-gray-200 transition-colors"
                 aria-label={t('smartHelpDesk.closeChat') || 'Close chat'}
               >

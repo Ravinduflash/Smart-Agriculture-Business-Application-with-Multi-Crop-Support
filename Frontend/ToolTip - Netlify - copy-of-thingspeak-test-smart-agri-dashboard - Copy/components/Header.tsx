@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { IconUserCircle, IconChevronDown, IconNotification, IconLanguage, LanguageOption, LANGUAGES } from '../constants';
+import { IconUserCircle, IconChevronDown, IconNotification, IconLanguage, IconHelp, LanguageOption, LANGUAGES } from '../constants';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { LanguageContext } from '../contexts/LanguageContext';
+import { useTooltipManager } from '../hooks/useTooltipManager';
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -14,6 +15,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { currentLanguage, changeLanguage, t } = useContext(LanguageContext);
+  const { isTooltipEnabled, toggleTooltip } = useTooltipManager();
 
   useEffect(() => {
     const timerId = setInterval(() => {
@@ -74,6 +76,21 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           {formattedDateTime()}
         </div>
 
+        {/* Tooltip Toggle Button - Always visible */}
+        <button
+          onClick={toggleTooltip}
+          className={`relative p-2 rounded-md transition-colors duration-200 border-2 flex items-center gap-1 ${
+            isTooltipEnabled 
+              ? 'text-green-600 bg-green-50 hover:bg-green-100 border-green-300' 
+              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100 border-gray-300'
+          }`}
+          aria-label="Toggle Tooltips"
+          title={isTooltipEnabled ? "Disable tooltips" : "Enable tooltips"}
+        >
+          <IconHelp className="w-4 h-4 sm:w-5 sm:h-5" />
+          <span className="text-xs font-medium">Tips</span>
+        </button>
+
         {/* Language Selector */}
         <div className="relative">
           <button
@@ -122,9 +139,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           </button>
           {userDropdownOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50" role="menu">
-              <a href="#profile" role="menuitem" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{t('header.dropdown.profile')}</a>
-              <a href="#settings" role="menuitem" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{t('header.dropdown.settings')}</a>
-              <a href="#logout" role="menuitem" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{t('header.dropdown.logout')}</a>
+              <button role="menuitem" className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{t('header.dropdown.profile')}</button>
+              <button role="menuitem" className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{t('header.dropdown.settings')}</button>
+              <button role="menuitem" className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{t('header.dropdown.logout')}</button>
             </div>
           )}
         </div>

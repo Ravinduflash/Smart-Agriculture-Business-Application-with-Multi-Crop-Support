@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <h1 class="text-2xl font-bold text-gray-800 mb-4">Smart Agriculture Dashboard - Test Page</h1>
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <p class="text-gray-600 mb-4">This is a simple test page to check if the basic structure works.</p>
+            <div class="flex items-center space-x-4">
+                <div class="spinner border-4 border-gray-300 border-t-green-500 rounded-full w-8 h-8"></div>
+                <span class="text-gray-700">Loading...</span>
+            </div>
+        </div>
+        <div class="mt-6 bg-green-50 border border-green-200 rounded-lg p-4">
+            <h2 class="text-lg font-semibold text-green-800 mb-2">Status Check</h2>
+            <ul class="text-green-700 space-y-1">
+                <li>✅ HTML structure loads correctly</li>
+                <li>✅ Tailwind CSS is working</li>
+                <li>✅ Basic styling is applied</li>
+                <li>✅ Animation is working</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
