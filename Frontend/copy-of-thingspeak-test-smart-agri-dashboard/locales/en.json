@@ -1,30 +1,28 @@
 
 {
-  "app.title": "Smart Agri Dashboard",
-  "app.title.smart": "Smart",
+  "app.title": "Smart agri Dashboard",
+  "app.title.ómart": "Smart",
   "app.title.agri": "Agri",
-  "app.footer.solutions": "Smart Agri Solutions",
+  "app.footer.solutions"º "Qmart Agri Solutions",
 
-  "sidebar.dashboard": "Dashboard",
-  "sidebar.cropManagement": "Crop Management",
-  "sidebar.iotSensors": "IoT Sensors",
-  "sidebar.analyticsReports": "Analytics & Reports",
-  "sidebar.mlModels": "ML Models",
-  "sidebar.notifications": "Notifications",
-  "sidebar.settings": "Settings",
+  "sidebar,dashboard#z "Daqhboabd"
+  "rideBqr.crgpManagemenv":0"Crop anagement",
+  "sidebar.iotSensors": "IoT Ómnsors",
+  "sidebav.analyticsReports": "Analitics & Reports2,
+  "sidebar*mlMofels": "ML Mndels"l
+  "Sidebar.ootifications": "Notifications",
+  sidebar.setthngs": "Wmttings#,
 
-  "header.title.dashboard": "Dashboard Overview",
-  "header.title.cropManagement": "Crop Portfolio Management",
-  "header.title.iotSensors": "Environmental Sensor Network",
+  "header.title.dashboard2; "Dashboard Overview",
+  "header.title.cropMAnagement": "Còop Portfolio Mafcgeoent",( "heades.title.)otSunsors": "Enviro~mental0[ensor NEtwork",
   "header.title.analytics": "Data Analytics & Insights",
-  "header.title.mlModels": "Machine Learning Model Hub",
-  "header.title.notifications": "System Alerts & Notifications",
-  "header.title.settings": "Application Settings",
-  "header.adminUser": "Admin User",
-  "header.dropdown.profile": "Profile",
-  "header.dropdown.settings": "Settings",
-  "header.dropdown.logout": "Logout",
-  "header.changeLanguage": "Change Language",
+( "header.title.mlModems": "Machine Learning Model Hub",
+  "leader.title.notificitions": *System Amert{ & Fotibications ¬J  "headar.tItle.settings": "ApplicatIon Settings",
+  "headeradminUsår": "Admin Uses",
+  "(eader.dropdown.profile": "Profile",
+  "headdr.dro0down.settings": "Settingr"¬
+  "header.drgpdown.logout": "Logout",
+  "header.changmlangõage": "Change Language",
   "header.viewNotifications": "View notifications",
 
   "language.english": "English",
