@@ -11,11 +11,13 @@ import { getFarmingAdvice } from '../services/geminiService';
 import GeminiResponseDisplay from '../components/GeminiResponseDisplay';
 import { LanguageContext } from '../contexts/LanguageContext';
 import { fetchThingSpeakData, mapThingSpeakDataToSensors, parseFloatSafe } from '../services/thingSpeakService';
+import { useTooltip } from '../hooks/useTooltip';
 
 const POLLING_INTERVAL = 20000; // 20 seconds
 
 const DashboardPage: React.FC = () => {
   const { currentLanguage, t } = useContext(LanguageContext);
+  const { getChartTooltip } = useTooltip();
   const navigate = useNavigate();
   const [sensors, setSensors] = useState<Sensor[]>(getMockSensors().map(s => ({
     ...s, 
@@ -260,7 +262,7 @@ const DashboardPage: React.FC = () => {
           <ChartCard 
             title={t('dashboard.yieldPrediction')} 
             subtitle={t('dashboard.yieldPrediction.subtitle')}
-            tooltipContent="This chart shows predicted crop yields based on current growing conditions. Use these predictions to plan harvesting and market timing."
+            tooltipContent={getChartTooltip('YIELD_PREDICTION')}
           >
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={yieldPrediction} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
@@ -279,7 +281,7 @@ const DashboardPage: React.FC = () => {
           <ChartCard 
             title={t('dashboard.diseaseDetection')} 
             subtitle={t('dashboard.diseaseDetection.subtitle')}
-            tooltipContent="This chart shows the health status of your crops. Green indicates healthy plants, while red shows potential disease issues that need attention."
+            tooltipContent={getChartTooltip('DISEASE_DETECTION')}
           >
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -337,7 +339,7 @@ const DashboardPage: React.FC = () => {
             title={t('dashboard.soilQualityOverview')} 
             subtitle={t('dashboard.soilQualityOverview.subtitle')} 
             className="lg:col-span-2"
-            tooltipContent="This chart shows different aspects of your soil quality as percentages. Higher percentages indicate better soil conditions for crop growth."
+            tooltipContent={getChartTooltip('SOIL_QUALITY')}
           >
               <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={soilQualityData} layout="horizontal" margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>

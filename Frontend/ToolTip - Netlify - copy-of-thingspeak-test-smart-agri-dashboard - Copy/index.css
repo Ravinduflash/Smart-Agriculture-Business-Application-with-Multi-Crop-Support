@@ -185,3 +185,65 @@ body {
     color: #F9FAFB;
   }
 }
+
+/* Markdown-specific styles for chatbot responses */
+.chatbot-response strong,
+.chatbot-response b {
+  font-weight: 700 !important;
+  color: #111827 !important;
+}
+
+.chatbot-response em,
+.chatbot-response i {
+  font-style: italic !important;
+}
+
+.chatbot-response h1 {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 0.75rem !important;
+  margin-top: 1rem !important;
+}
+
+.chatbot-response h2 {
+  font-size: 1.125rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 0.75rem !important;
+  margin-top: 1rem !important;
+}
+
+.chatbot-response h3 {
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 0.5rem !important;
+  margin-top: 0.75rem !important;
+}
+
+.chatbot-response ul {
+  list-style-type: disc !important;
+  margin-left: 1.25rem !important;
+  margin-bottom: 0.75rem !important;
+}
+
+.chatbot-response ol {
+  list-style-type: decimal !important;
+  margin-left: 1.25rem !important;
+  margin-bottom: 0.75rem !important;
+}
+
+.chatbot-response li {
+  margin-bottom: 0.25rem !important;
+}
+
+.chatbot-response p {
+  margin-bottom: 0.75rem !important;
+  line-height: 1.6 !important;
+}
+
+.chatbot-response code {
+  background-color: #f3f4f6 !important;
+  padding: 0.125rem 0.25rem !important;
+  border-radius: 0.25rem !important;
+  font-family: 'Courier New', monospace !important;
+  font-size: 0.875rem !important;
+}

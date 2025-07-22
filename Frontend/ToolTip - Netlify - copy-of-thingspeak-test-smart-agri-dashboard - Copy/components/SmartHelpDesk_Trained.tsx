@@ -6,6 +6,7 @@ import {
   KnowledgeItem 
 } from '../services/appKnowledgeBase';
 import { processSmartFarmingQuery } from '../services/helpContentService';
+import GeminiResponseDisplay from './GeminiResponseDisplay';
 
 interface Message {
   id: string;
@@ -39,7 +40,7 @@ const SmartHelpDesk: React.FC = () => {
     if (messages.length === 0) {
       setMessages([{
         id: 'welcome',
-        text: `🤖 Welcome to Smart Agriculture AI Assistant!\n\nI'm powered by Google Gemini AI and trained specifically on your Smart Agriculture application. I can provide intelligent, context-aware help with:\n\n• 🌱 Adding and managing crops\n• 🎯 AI-powered crop recommendations\n• 📊 Understanding sensor readings\n• 📈 Using analytics and reports\n• 🔔 Setting up smart alerts\n• 🤖 AI features like disease detection\n• ⚙️ Configuring settings\n• 🔧 Troubleshooting issues\n\nAsk me anything about your app - I understand natural language and can provide detailed, practical guidance!`,
+        text: `🤖 **Welcome to Smart Agriculture AI Assistant!**\n\nI'm powered by Google Gemini AI and trained specifically on your Smart Agriculture application. I can provide intelligent, context-aware help with:\n\n• 🌱 **Adding and managing crops**\n• 🎯 **AI-powered crop recommendations**\n• 📊 **Understanding sensor readings**\n• 📈 **Using analytics and reports**\n• 🔔 **Setting up smart alerts**\n• 🤖 **AI features like disease detection**\n• ⚙️ **Configuring settings**\n• 🔧 **Troubleshooting issues**\n\nAsk me anything about your app - I understand natural language and can provide **detailed, practical guidance**!`,
         isUser: false,
         timestamp: new Date(),
         suggestedQuestions: [
@@ -266,7 +267,11 @@ const SmartHelpDesk: React.FC = () => {
                 ? 'bg-green-500 text-white' 
                 : 'bg-gray-100 text-gray-800'
             }`}>
-              <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+              {message.isUser ? (
+                <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+              ) : (
+                <GeminiResponseDisplay response={message.text} className="text-sm" />
+              )}
               
               {/* Related Topics */}
               {message.relatedTopics && message.relatedTopics.length > 0 && (
