@@ -453,7 +453,7 @@ const MLModelsPage: React.FC = () => {
               value={cropName}
               onChange={(e) => setCropName(e.target.value)}
               placeholder="e.g., Tomato, Wheat, Rice"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-gray-900"
             />
           </div>
           <div>
@@ -463,7 +463,7 @@ const MLModelsPage: React.FC = () => {
               value={fieldSize}
               onChange={(e) => setFieldSize(e.target.value)}
               placeholder="e.g., 1, 2.5, 10"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-gray-900"
             />
           </div>
           <button
@@ -495,7 +495,7 @@ const MLModelsPage: React.FC = () => {
               type="file"
               accept="image/*"
               onChange={(e) => setSelectedImageFile(e.target.files?.[0] || null)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-gray-900"
             />
           </div>
           <div className="text-sm text-gray-600">
@@ -541,7 +541,7 @@ const MLModelsPage: React.FC = () => {
                 value={temperature}
                 onChange={(e) => setTemperature(e.target.value)}
                 placeholder="e.g., 25"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-gray-900"
               />
             </div>
             <div>
@@ -551,7 +551,7 @@ const MLModelsPage: React.FC = () => {
                 value={moisture}
                 onChange={(e) => setMoisture(e.target.value)}
                 placeholder="e.g., 60"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-gray-900"
               />
             </div>
             <div>
@@ -562,7 +562,7 @@ const MLModelsPage: React.FC = () => {
                 value={ph}
                 onChange={(e) => setPh(e.target.value)}
                 placeholder="e.g., 6.5"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-gray-900"
               />
             </div>
           </div>
@@ -604,7 +604,7 @@ const MLModelsPage: React.FC = () => {
               value={cropName}
               onChange={(e) => setCropName(e.target.value)}
               placeholder="e.g., Tomato, Wheat, Rice"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-gray-900"
             />
           </div>
           <div>
@@ -613,7 +613,7 @@ const MLModelsPage: React.FC = () => {
               type="date"
               value={plantingDate}
               onChange={(e) => setPlantingDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-gray-900"
             />
           </div>
           <div className="text-sm text-gray-600">
@@ -649,7 +649,7 @@ const MLModelsPage: React.FC = () => {
               value={cropName}
               onChange={(e) => setCropName(e.target.value)}
               placeholder="e.g., Tomato, Wheat, Rice"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-gray-900"
             />
           </div>
           <div>
@@ -659,7 +659,7 @@ const MLModelsPage: React.FC = () => {
               value={fieldSize}
               onChange={(e) => setFieldSize(e.target.value)}
               placeholder="e.g., 1, 2.5, 10"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-gray-900"
             />
           </div>
           <div className="text-sm text-gray-600">

@@ -306,7 +306,8 @@
   
   "gemini.smartHelpDesk.prompt": "You are a friendly agricultural expert and assistant for a Smart Agriculture Dashboard. A user has asked the following question about their smart farming dashboard: '{{question}}'. Please provide a helpful, informative response that explains the feature or concept in simple terms that a farmer can understand. Focus on practical benefits and how it helps with farming decisions. If the question is about dashboard metrics, explain what the numbers mean and how to interpret them. If it's about charts or data, explain how to read them and what actions to take based on the information. Keep your response conversational and farmer-friendly.",
 
-  "smartHelpDesk.title": "Smart Help Desk",
+  "smartHelpDesk.title": "Smart Agriculture AI Assistant",
+  "smartHelpDesk.subtitle": "Powered by Google Gemini AI",
   "smartHelpDesk.helpModeActive": "Help mode active - Click on any element to learn more",
   "smartHelpDesk.activateHelp": "Help Mode",
   "smartHelpDesk.deactivateHelp": "Exit Help",
@@ -314,9 +315,14 @@
   "smartHelpDesk.closeChat": "Close Smart Help Desk",
   "smartHelpDesk.resetChat": "Reset Chat",
   "smartHelpDesk.reset": "Reset",
-  "smartHelpDesk.welcomeMessage": "Welcome to Smart Help Desk! I'm here to help you understand your farming dashboard and make better decisions for your crops. How can I assist you today?",
+  "smartHelpDesk.welcomeMessage": "🤖 **Welcome to Smart Agriculture AI Assistant!**\n\nI'm powered by Google Gemini AI and trained specifically on your Smart Agriculture application. I can provide intelligent, context-aware help with:\n\n• 🌱 **Adding and managing crops**\n• 🎯 **AI-powered crop recommendations**\n• 📊 **Understanding sensor readings**\n• 📈 **Using analytics and reports**\n• 🔔 **Setting up smart alerts**\n• 🤖 **AI features like disease detection**\n• ⚙️ **Configuring settings**\n• 🔧 **Troubleshooting issues**\n\nAsk me anything about your app - I understand natural language and can provide **detailed, practical guidance**!",
   "smartHelpDesk.suggestedQuestions": "Suggested Questions:",
-  "smartHelpDesk.inputPlaceholder": "Type your question here...",
+  "smartHelpDesk.inputPlaceholder": "Ask me anything about your Smart Agriculture app...",
+  "smartHelpDesk.placeholder": "Ask me anything about your Smart Agriculture app...",
+  "smartHelpDesk.quickHelp": "Quick Help:",
+  "smartHelpDesk.thinking": "Thinking...",
+  "smartHelpDesk.clearChat": "Clear chat",
+  "smartHelpDesk.close": "Close",
   "smartHelpDesk.sendMessage": "Send message",
   "smartHelpDesk.error.noResponse": "I apologize, but I cannot provide a response at this time. Please try again later.",
   "smartHelpDesk.error.generalError": "I apologize, but I encountered an error. Please try again or ask a different question.",
@@ -326,6 +332,18 @@
   "smartHelpDesk.preMadeQuestions.npkValues": "What do the NPK soil values mean?",
   "smartHelpDesk.preMadeQuestions.soilPh": "Why is monitoring soil pH important?",
   "smartHelpDesk.preMadeQuestions.iotSensors": "Tell me about the IoT Sensors page.",
+
+  "smartHelpDesk.quickActions.addCrop": "How to add new crop?",
+  "smartHelpDesk.quickActions.cropRecommendations": "Get AI crop recommendations",
+  "smartHelpDesk.quickActions.trainModels": "Train ML models",
+  "smartHelpDesk.quickActions.checkSensors": "Check sensor readings",
+  "smartHelpDesk.quickActions.setupAlerts": "Setup smart alerts",
+  "smartHelpDesk.quickActions.troubleshoot": "Troubleshoot issues",
+  
+  "smartHelpDesk.suggestedQuestions.cropRecommendations": "How do I get crop recommendations?",
+  "smartHelpDesk.suggestedQuestions.mlModels": "What ML models are available in the app?",
+  "smartHelpDesk.suggestedQuestions.irrigation": "How to set up automated irrigation?",
+  "smartHelpDesk.suggestedQuestions.aiVsCustom": "Show me the difference between AI and custom recommendations",
 
   "common.na": "N/A"
 }

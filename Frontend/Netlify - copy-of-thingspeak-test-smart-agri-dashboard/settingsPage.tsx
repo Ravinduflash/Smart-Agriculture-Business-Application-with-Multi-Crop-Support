@@ -15,11 +15,11 @@ const SettingsPage: React.FC = () => {
         <div className="mt-4 space-y-3">
             <div>
                 <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">{t('settings.profile.label.fullName')}</label>
-                <input type="text" name="fullName" id="fullName" defaultValue={t('header.adminUser')} className="mt-1 block w-full md:w-1/2 border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm p-2"/>
+                <input type="text" name="fullName" id="fullName" defaultValue={t('header.adminUser')} className="mt-1 block w-full md:w-1/2 border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm p-2 text-gray-900"/>
             </div>
             <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">{t('settings.profile.label.emailAddress')}</label>
-                <input type="email" name="email" id="email" defaultValue="admin@smartagri.example.com" className="mt-1 block w-full md:w-1/2 border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm p-2"/>
+                <input type="email" name="email" id="email" defaultValue="admin@smartagri.example.com" className="mt-1 block w-full md:w-1/2 border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm p-2 text-gray-900"/>
             </div>
             <button type="button" className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-dark">
                 {t('settings.buttons.saveChanges')}

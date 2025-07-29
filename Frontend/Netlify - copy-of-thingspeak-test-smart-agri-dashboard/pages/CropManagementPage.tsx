@@ -256,7 +256,7 @@ function CropManagementPage(): JSX.Element {
               value={newCropName}
               onChange={(e) => setNewCropName(e.target.value)}
               placeholder={t('cropManagement.modal.cropName.placeholder')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary text-gray-900"
               aria-required="true"
             />
           </div>
@@ -362,15 +362,15 @@ function CropManagementPage(): JSX.Element {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border border-gray-200 rounded-md bg-gray-50">
                 <div>
                   <label htmlFor="manualTemp" className="block text-sm font-medium text-gray-700">{t('cropManagement.recommendation.manualInput.temp')}</label>
-                  <input type="number" id="manualTemp" value={manualTemperature} onChange={(e) => setManualTemperature(e.target.value)} className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary" placeholder="e.g., 25" aria-label={t('cropManagement.recommendation.manualInput.temp')}/>
+                  <input type="number" id="manualTemp" value={manualTemperature} onChange={(e) => setManualTemperature(e.target.value)} className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary text-gray-900" placeholder="e.g., 25" aria-label={t('cropManagement.recommendation.manualInput.temp')}/>
                 </div>
                 <div>
                   <label htmlFor="manualMoisture" className="block text-sm font-medium text-gray-700">{t('cropManagement.recommendation.manualInput.moisture')}</label>
-                  <input type="number" id="manualMoisture" value={manualMoisture} onChange={(e) => setManualMoisture(e.target.value)} className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary" placeholder="e.g., 60" aria-label={t('cropManagement.recommendation.manualInput.moisture')}/>
+                  <input type="number" id="manualMoisture" value={manualMoisture} onChange={(e) => setManualMoisture(e.target.value)} className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary text-gray-900" placeholder="e.g., 60" aria-label={t('cropManagement.recommendation.manualInput.moisture')}/>
                 </div>
                 <div>
                   <label htmlFor="manualPh" className="block text-sm font-medium text-gray-700">{t('cropManagement.recommendation.manualInput.ph')}</label>
-                  <input type="number" id="manualPh" step="0.1" value={manualPh} onChange={(e) => setManualPh(e.target.value)} className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary" placeholder="e.g., 6.5" aria-label={t('cropManagement.recommendation.manualInput.ph')}/>
+                  <input type="number" id="manualPh" step="0.1" value={manualPh} onChange={(e) => setManualPh(e.target.value)} className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary text-gray-900" placeholder="e.g., 6.5" aria-label={t('cropManagement.recommendation.manualInput.ph')}/>
                 </div>
               </div>
             )}

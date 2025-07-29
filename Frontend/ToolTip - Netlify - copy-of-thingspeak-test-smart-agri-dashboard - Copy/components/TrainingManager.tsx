@@ -130,41 +130,41 @@ const TrainingManager: React.FC<TrainingManagerProps> = ({ onClose }) => {
   ];
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl h-[95vh] sm:h-[90vh] flex flex-col max-h-screen">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-t-lg">
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-3 sm:p-6 rounded-t-lg flex-shrink-0">
           <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-2xl font-bold">🧠 Smart Agriculture Knowledge Base Manager</h2>
-              <p className="text-blue-100 mt-1">Train your chatbot with app-specific knowledge</p>
+            <div className="min-w-0 flex-1 mr-4">
+              <h2 className="text-lg sm:text-2xl font-bold truncate">🧠 Smart Agriculture Knowledge Base Manager</h2>
+              <p className="text-blue-100 mt-1 text-xs sm:text-sm">Train your chatbot with app-specific knowledge</p>
             </div>
             <button
               onClick={onClose}
-              className="text-white hover:bg-white hover:bg-opacity-20 p-2 rounded-full"
+              className="text-white hover:bg-white hover:bg-opacity-20 p-1.5 sm:p-2 rounded-full flex-shrink-0"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
         </div>
 
-        <div className="flex-1 flex">
+        <div className="flex-1 flex flex-col lg:flex-row min-h-0">
           {/* Left Panel - Knowledge List */}
-          <div className="w-2/3 p-6 border-r border-gray-200">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-semibold">Knowledge Base ({APP_KNOWLEDGE_BASE.length} items)</h3>
-              <div className="flex space-x-2">
+          <div className="w-full lg:w-2/3 p-3 sm:p-6 lg:border-r border-gray-200 flex flex-col min-h-0">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
+              <h3 className="text-base sm:text-lg font-semibold">Knowledge Base ({APP_KNOWLEDGE_BASE.length} items)</h3>
+              <div className="flex flex-col xs:flex-row space-y-2 xs:space-y-0 xs:space-x-2 w-full sm:w-auto">
                 <button
                   onClick={() => setIsAddingNew(true)}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+                  className="bg-green-500 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-xs sm:text-sm"
                 >
                   ➕ Add New
                 </button>
                 <button
                   onClick={exportKnowledge}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                  className="bg-blue-500 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-xs sm:text-sm"
                 >
                   📥 Export
                 </button>
@@ -172,11 +172,11 @@ const TrainingManager: React.FC<TrainingManagerProps> = ({ onClose }) => {
             </div>
 
             {/* Filters */}
-            <div className="flex space-x-4 mb-6">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 mb-4 sm:mb-6">
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-xs sm:text-sm text-gray-900"
               >
                 <option value="">All Categories</option>
                 {Object.entries(KNOWLEDGE_CATEGORIES).map(([key, label]) => (
@@ -188,17 +188,17 @@ const TrainingManager: React.FC<TrainingManagerProps> = ({ onClose }) => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search knowledge..."
-                className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-xs sm:text-sm text-gray-900"
               />
             </div>
 
             {/* Knowledge Items */}
-            <div className="space-y-4 h-[400px] overflow-y-auto">
+            <div className="space-y-3 sm:space-y-4 flex-1 overflow-y-auto min-h-0">
               {filteredKnowledge.map((item) => (
-                <div key={item.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
+                <div key={item.id} className="bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-200">
+                  <div className="flex flex-col sm:flex-row justify-between items-start gap-2 sm:gap-0">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-2">
                         <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
                           {KNOWLEDGE_CATEGORIES[item.category as keyof typeof KNOWLEDGE_CATEGORIES]}
                         </span>
@@ -206,20 +206,20 @@ const TrainingManager: React.FC<TrainingManagerProps> = ({ onClose }) => {
                           {item.difficulty}
                         </span>
                       </div>
-                      <h4 className="font-semibold text-gray-800 mb-2">{item.question}</h4>
-                      <p className="text-sm text-gray-600 mb-2 line-clamp-2">{item.answer}</p>
+                      <h4 className="font-semibold text-gray-800 mb-2 text-sm sm:text-base break-words">{item.question}</h4>
+                      <p className="text-xs sm:text-sm text-gray-600 mb-2 line-clamp-2 break-words">{item.answer}</p>
                       <div className="flex flex-wrap gap-1">
                         {item.keywords.map((keyword, index) => (
-                          <span key={index} className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded">
+                          <span key={index} className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded break-words">
                             {keyword}
                           </span>
                         ))}
                       </div>
                     </div>
-                    <div className="flex space-x-2 ml-4">
+                    <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-2 ml-2 sm:ml-4 flex-shrink-0">
                       <button
                         onClick={() => handleEdit(item)}
-                        className="text-blue-500 hover:text-blue-700 p-1"
+                        className="text-blue-500 hover:text-blue-700 p-1 text-xs sm:text-sm"
                         title="Edit"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -228,7 +228,7 @@ const TrainingManager: React.FC<TrainingManagerProps> = ({ onClose }) => {
                       </button>
                       <button
                         onClick={() => handleDelete(item.id)}
-                        className="text-red-500 hover:text-red-700 p-1"
+                        className="text-red-500 hover:text-red-700 p-1 text-xs sm:text-sm"
                         title="Delete"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -243,11 +243,11 @@ const TrainingManager: React.FC<TrainingManagerProps> = ({ onClose }) => {
           </div>
 
           {/* Right Panel - Add/Edit Form */}
-          <div className="w-1/3 p-6">
+          <div className="w-full lg:w-1/3 p-3 sm:p-6 border-t lg:border-t-0 lg:border-l border-gray-200 flex flex-col min-h-0">
             {isAddingNew ? (
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4 flex-1 overflow-y-auto">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">
+                  <h3 className="text-base sm:text-lg font-semibold">
                     {editingItem ? 'Edit Knowledge Item' : 'Add New Knowledge Item'}
                   </h3>
                   <button
@@ -271,33 +271,33 @@ const TrainingManager: React.FC<TrainingManagerProps> = ({ onClose }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Question</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Question</label>
                   <input
                     type="text"
                     value={formData.question}
                     onChange={(e) => setFormData({...formData, question: e.target.value})}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-gray-900 text-xs sm:text-sm"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Answer</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Answer</label>
                   <textarea
                     value={formData.answer}
                     onChange={(e) => setFormData({...formData, answer: e.target.value})}
-                    rows={6}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                    rows={4}
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-gray-900 text-xs sm:text-sm resize-none"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Category</label>
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({...formData, category: e.target.value})}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-gray-900 text-xs sm:text-sm"
                     required
                   >
                     <option value="">Select Category</option>
@@ -308,33 +308,33 @@ const TrainingManager: React.FC<TrainingManagerProps> = ({ onClose }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Keywords (comma-separated)</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Keywords (comma-separated)</label>
                   <input
                     type="text"
                     value={formData.keywords}
                     onChange={(e) => setFormData({...formData, keywords: e.target.value})}
                     placeholder="crop, management, add, new"
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-gray-900 text-xs sm:text-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Related Topics (comma-separated)</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Related Topics (comma-separated)</label>
                   <input
                     type="text"
                     value={formData.relatedTopics}
                     onChange={(e) => setFormData({...formData, relatedTopics: e.target.value})}
                     placeholder="crop-tracking, harvest-planning"
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-gray-900 text-xs sm:text-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Difficulty</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Difficulty</label>
                   <select
                     value={formData.difficulty}
                     onChange={(e) => setFormData({...formData, difficulty: e.target.value as 'beginner' | 'intermediate' | 'advanced'})}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-gray-900 text-xs sm:text-sm"
                   >
                     <option value="beginner">Beginner</option>
                     <option value="intermediate">Intermediate</option>
@@ -344,22 +344,22 @@ const TrainingManager: React.FC<TrainingManagerProps> = ({ onClose }) => {
 
                 <button
                   type="submit"
-                  className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors"
+                  className="w-full bg-blue-500 text-white py-2 px-3 sm:px-4 rounded-lg hover:bg-blue-600 transition-colors text-xs sm:text-sm font-medium"
                 >
                   {editingItem ? 'Update Knowledge Item' : 'Add Knowledge Item'}
                 </button>
               </form>
             ) : (
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Quick Add Suggestions</h3>
-                <p className="text-sm text-gray-600 mb-4">
+              <div className="flex-1 overflow-y-auto">
+                <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Quick Add Suggestions</h3>
+                <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
                   Here are some common questions you might want to add to your knowledge base:
                 </p>
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {suggestionTemplates.map((template, index) => (
                     <div key={index} className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                      <h4 className="font-medium text-sm text-gray-800 mb-1">{template.question}</h4>
-                      <p className="text-xs text-gray-600 mb-2 line-clamp-2">{template.answer}</p>
+                      <h4 className="font-medium text-xs sm:text-sm text-gray-800 mb-1 break-words">{template.question}</h4>
+                      <p className="text-xs text-gray-600 mb-2 line-clamp-2 break-words">{template.answer}</p>
                       <button
                         onClick={() => {
                           setFormData({

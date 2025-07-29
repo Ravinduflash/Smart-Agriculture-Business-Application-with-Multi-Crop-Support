@@ -1,6 +1,6 @@
 
 
-import React, { useState, useEffect, useContext, useCallback } from 'react';
+import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import DashboardCard from '../components/DashboardCard';
@@ -15,6 +15,7 @@ import { LanguageContext } from '../contexts/LanguageContext';
 import { fetchThingSpeakData, mapThingSpeakDataToSensors, parseFloatSafe } from '../services/thingSpeakService';
 
 const POLLING_INTERVAL = 20000; // 20 seconds
+const AI_ADVICE_INTERVAL = 300000; // 5 minutes (300,000 ms)
 
 const DashboardPage: React.FC = () => {
   const { currentLanguage, t } = useContext(LanguageContext);
@@ -26,6 +27,7 @@ const DashboardPage: React.FC = () => {
             s.type === SensorType.Humidity ? HumidityStatusType.NotAvailable : 'Stable', 
     currentValue: t('common.na') 
   })));
+  const sensorsRef = useRef(sensors); // Ref to track current sensors for interval callback
   const [yieldPrediction, setYieldPrediction] = useState<ChartData[]>([]);
   const [diseaseData, setDiseaseData] = useState<PieChartData[]>([]);
   const [soilQualityData, setSoilQualityData] = useState<PieChartData[]>([]);
@@ -41,6 +43,7 @@ const DashboardPage: React.FC = () => {
     const thingSpeakData = await fetchThingSpeakData(1); // Fetch only latest for dashboard cards
     const processedSensors = mapThingSpeakDataToSensors(thingSpeakData, initialSensorsBase, t);
     setSensors(processedSensors);
+    sensorsRef.current = processedSensors; // Update ref with current sensors
     if (isInitialLoad) setIsLoadingSensors(false);
   }, [t]);
 
@@ -67,26 +70,13 @@ const DashboardPage: React.FC = () => {
 
   useEffect(() => {
     const fetchAdvice = async () => {
-      if (sensors.length > 0 && !isLoadingSensors) {
-        const tempSensor = sensors.find(s => s.type === SensorType.Temperature);
-        const moistureSensor = sensors.find(s => s.type === SensorType.SoilMoisture);
+      if (sensorsRef.current.length > 0 && !isLoadingSensors) {
+        const tempSensor = sensorsRef.current.find(s => s.type === SensorType.Temperature);
+        const moistureSensor = sensorsRef.current.find(s => s.type === SensorType.SoilMoisture);
         
         if (tempSensor && moistureSensor && moistureSensor.status && tempSensor.status) {
           const tempValue = typeof tempSensor.currentValue === 'number' ? tempSensor.currentValue : 
                             (typeof tempSensor.currentValue === 'string' ? parseFloatSafe(tempSensor.currentValue) : null);
-          
-          const moistureStatusKey = moistureSensor.status as SoilMoistureStatusType; // Assuming dashboard primarily uses soil moisture for advice trigger
-          const tempStatusKey = tempSensor.status as TemperatureStatusType; // Get temperature status for advice context
-
-          // The getFarmingAdvice function expects a single moistureStatusKey.
-          // We can combine or prioritize. For now, let's pass soil moisture status.
-          // The prompt for getFarmingAdvice itself uses the temperature value and the moisture status key.
-          // So, if we want to pass the temperature status (e.g., "Too Cold"), the Gemini prompt would need adjustment.
-          // Currently, it takes numerical temp and a moisture status string.
-
-          let adviceStatusKey = moistureStatusKey;
-          // If a more complex logic is needed to derive a single 'status' for advice from multiple sensors,
-          // it would be implemented here. For now, using moistureStatusKey for the advice call.
 
           if (tempValue !== null) {
             setIsLoadingAdvice(true);
@@ -115,11 +105,21 @@ const DashboardPage: React.FC = () => {
       }
     };
     
-    if (!isLoadingSensors || sensors.length > 0) {
+    // Initial fetch of AI advice
+    if (!isLoadingSensors && sensorsRef.current.length > 0) {
         fetchAdvice();
     }
     
-  }, [sensors, currentLanguage, t, isLoadingSensors]);
+    // Set up interval for AI advice refresh every 5 minutes
+    const adviceIntervalId = setInterval(() => {
+      if (!isLoadingSensors && sensorsRef.current.length > 0) {
+        fetchAdvice();
+      }
+    }, AI_ADVICE_INTERVAL);
+
+    return () => clearInterval(adviceIntervalId);
+    
+  }, [currentLanguage, t, isLoadingSensors]); // Removed 'sensors' dependency to prevent frequent updates
 
 
   const soilMoistureSensor = sensors.find(s => s.type === SensorType.SoilMoisture);

@@ -356,7 +356,7 @@ const SmartHelpDesk: React.FC<SmartHelpDeskProps> = ({ className = '' }) => {
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder={t('smartHelpDesk.inputPlaceholder') || 'Type your question...'}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"
                 disabled={isLoading}
               />
               <button

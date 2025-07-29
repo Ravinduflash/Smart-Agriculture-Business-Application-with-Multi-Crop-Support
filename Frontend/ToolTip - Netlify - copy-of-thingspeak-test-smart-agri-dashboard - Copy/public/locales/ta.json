@@ -299,7 +299,8 @@
   
   "gemini.smartHelpDesk.prompt": "You are a friendly agricultural expert and assistant for a Smart Agriculture Dashboard. A user has asked the following question about their smart farming dashboard: '{{question}}'. Please provide a helpful, informative response that explains the feature or concept in simple terms that a farmer can understand. Focus on practical benefits and how it helps with farming decisions. If the question is about dashboard metrics, explain what the numbers mean and how to interpret them. If it's about charts or data, explain how to read them and what actions to take based on the information. Keep your response conversational and farmer-friendly.",
 
-  "smartHelpDesk.title": "ஸ்மார்ட் உதவி மையம்",
+  "smartHelpDesk.title": "ஸ்மார்ட் விவசாய AI உதவியாளர்",
+  "smartHelpDesk.subtitle": "Google Gemini AI ஆல் இயக்கப்படுகிறது",
   "smartHelpDesk.helpModeActive": "உதவி முறை செயல்பாட்டில் - மேலும் அறிய எந்த உறுப்பினத்தின் மீதும் கிளிக் செய்யவும்",
   "smartHelpDesk.activateHelp": "உதவி முறை",
   "smartHelpDesk.deactivateHelp": "உதவியை நிறுத்து",
@@ -307,9 +308,14 @@
   "smartHelpDesk.closeChat": "அரட்டையை மூடு",
   "smartHelpDesk.resetChat": "அரட்டையை மீட்டமைக்க",
   "smartHelpDesk.reset": "மீட்டமைக்க",
-  "smartHelpDesk.welcomeMessage": "ஸ்மார்ட் உதவி மையத்திற்கு வரவேற்கிறோம்! உங்கள் விவசாய டாஷ்போர்டைப் புரிந்துகொள்ளவும் உங்கள் பயிர்களுக்கு சிறந்த முடிவுகளை எடுக்கவும் நான் இங்கே இருக்கிறேன். இன்று நான் உங்களுக்கு எவ்வாறு உதவ முடியும்?",
+  "smartHelpDesk.welcomeMessage": "🤖 **ஸ்மார்ட் விவசாய AI உதவியாளருக்கு வரவேற்கிறோம்!**\n\nநான் Google Gemini AI ஆல் இயக்கப்படுகிறேன் மற்றும் உங்கள் ஸ்மார்ட் விவசாய பயன்பாட்டிற்காக குறிப்பாக பயிற்சி பெற்றுள்ளேன். நான் பின்வரும் விஷயங்களில் அறிவார்ந்த, சூழல் அறிந்த உதவியை வழங்க முடியும்:\n\n• 🌱 **பயிர்களைச் சேர்த்தல் மற்றும் நிர்வகித்தல்**\n• 🎯 **AI-இயங்கும் பயிர் பரிந்துரைகள்**\n• 📊 **சென்சார் வாசிப்புகளைப் புரிந்துகொள்ளுதல்**\n• 📈 **பகுப்பாய்வு மற்றும் அறிக்கைகளைப் பயன்படுத்துதல்**\n• 🔔 **ஸ்மார்ட் எச்சரிக்கைகளை அமைத்தல்**\n• 🤖 **நோய் கண்டறிதல் போன்ற AI அம்சங்கள்**\n• ⚙️ **அமைப்புகளை கட்டமைத்தல்**\n• 🔧 **சிக்கல்களை தீர்த்தல்**\n\nஉங்கள் பயன்பாட்டைப் பற்றி எதையும் என்னிடம் கேளுங்கள் - நான் இயற்கையான மொழியைப் புரிந்துகொண்டு **விரிவான, நடைமுறை வழிகாட்டுதலை** வழங்க முடியும்!",
   "smartHelpDesk.suggestedQuestions": "பரிந்துரைக்கப்பட்ட கேள்விகள்:",
-  "smartHelpDesk.inputPlaceholder": "உங்கள் கேள்வியை இங்கே தட்டச்சு செய்யுங்கள்...",
+  "smartHelpDesk.inputPlaceholder": "உங்கள் ஸ்மார்ட் விவசாய பயன்பாட்டைப் பற்றி எதையும் கேளுங்கள்...",
+  "smartHelpDesk.placeholder": "உங்கள் ஸ்மார்ட் விவசாய பயன்பாட்டைப் பற்றி எதையும் கேளுங்கள்...",
+  "smartHelpDesk.quickHelp": "விரைவு உதவி:",
+  "smartHelpDesk.thinking": "சிந்தித்துக்கொண்டிருக்கிறேன்...",
+  "smartHelpDesk.clearChat": "அரட்டையை அழிக்கவும்",
+  "smartHelpDesk.close": "மூடு",
   "smartHelpDesk.sendMessage": "செய்தியை அனுப்பு",
   "smartHelpDesk.error.noResponse": "மன்னிக்கவும், நான் இப்போது பதிலளிக்க முடியவில்லை. பின்னர் மீண்டும் முயற்சிக்கவும்.",
   "smartHelpDesk.error.generalError": "மன்னிக்கவும், எனக்கு பிழை ஏற்பட்டது. மீண்டும் முயற்சிக்கவும் அல்லது வேறு கேள்வி கேட்கவும்.",
@@ -318,7 +324,19 @@
   "smartHelpDesk.preMadeQuestions.historicalCharts": "வரலாற்று தரவு விளக்கப்படங்களை எப்படி படிப்பது?",
   "smartHelpDesk.preMadeQuestions.npkValues": "NPK மண் மதிப்புகள் என்ன அர்த்தம்?",
   "smartHelpDesk.preMadeQuestions.soilPh": "மண் pH கண்காணிப்பு ஏன் முக்கியம்?",
-  "smartHelpDesk.preMadeQuestions.iotSensors": "IoT சென்சார் பக்கத்தைப் பற்றி சொல்லுங்கள்.",
+  "smartHelpDesk.preMadeQuestions.iotSensors": "IoT சென்சார்கள் பக்கத்தைப் பற்றி சொல்லுங்கள்.",
+
+  "smartHelpDesk.quickActions.addCrop": "புதிய பயிரை எப்படி சேர்ப்பது?",
+  "smartHelpDesk.quickActions.cropRecommendations": "AI பயிர் பரிந்துரைகளை பெறுங்கள்",
+  "smartHelpDesk.quickActions.trainModels": "ML மாதிரிகளை பயிற்சி செய்யுங்கள்",
+  "smartHelpDesk.quickActions.checkSensors": "சென்சார் வாசிப்புகளை சரிபார்க்கவும்",
+  "smartHelpDesk.quickActions.setupAlerts": "ஸ்மார்ட் எச்சரிக்கைகளை அமைக்கவும்",
+  "smartHelpDesk.quickActions.troubleshoot": "சிக்கல்களை சரிசெய்யவும்",
+  
+  "smartHelpDesk.suggestedQuestions.cropRecommendations": "பயிர் பரிந்துரைகளை எப்படி பெறுவது?",
+  "smartHelpDesk.suggestedQuestions.mlModels": "பயன்பாட்டில் என்ன ML மாதிரிகள் உள்ளன?",
+  "smartHelpDesk.suggestedQuestions.irrigation": "தானியங்கி நீர்ப்பாசனத்தை எப்படி அமைப்பது?",
+  "smartHelpDesk.suggestedQuestions.aiVsCustom": "AI மற்றும் தனிப்பயன் பரிந்துரைகளுக்கு இடையேயான வேறுபாட்டைக் காட்டுங்கள்",
 
   "common.na": "கி/இ"
 }

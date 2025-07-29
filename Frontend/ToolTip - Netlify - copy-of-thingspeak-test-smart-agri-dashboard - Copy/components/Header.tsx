@@ -54,32 +54,32 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="bg-card shadow-sm h-16 flex items-center justify-between px-4 sm:px-6">
-      <div className="flex items-center">
+    <header className="bg-card shadow-sm h-14 sm:h-16 flex items-center justify-between px-2 sm:px-4 lg:px-6 flex-shrink-0">
+      <div className="flex items-center min-w-0 flex-1">
         {/* Mobile menu button */}
         <button
           onClick={onMenuClick}
-          className="lg:hidden mr-4 p-2 rounded-md text-gray-500 hover:text-primary hover:bg-gray-100"
+          className="lg:hidden mr-2 sm:mr-4 p-2 rounded-md text-gray-500 hover:text-primary hover:bg-gray-100 flex-shrink-0"
           aria-label="Open menu"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
         
-        <h1 className="text-lg sm:text-xl font-semibold text-textDark truncate">{getPageTitle()}</h1>
+        <h1 className="text-sm sm:text-lg lg:text-xl font-semibold text-textDark truncate min-w-0">{getPageTitle()}</h1>
       </div>
       
-      <div className="flex items-center space-x-2 sm:space-x-4">
+      <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-4 flex-shrink-0">
         {/* Date and Time Display */}
-        <div className="text-xs sm:text-sm text-gray-700 hidden md:block">
+        <div className="text-xs text-gray-700 hidden lg:block whitespace-nowrap">
           {formattedDateTime()}
         </div>
 
         {/* Tooltip Toggle Button - Always visible */}
         <button
           onClick={toggleTooltip}
-          className={`relative p-2 rounded-md transition-colors duration-200 border-2 flex items-center gap-1 ${
+          className={`relative p-1.5 sm:p-2 rounded-md transition-colors duration-200 border-2 flex items-center gap-1 ${
             isTooltipEnabled 
               ? 'text-green-600 bg-green-50 hover:bg-green-100 border-green-300' 
               : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100 border-gray-300'
@@ -87,61 +87,63 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           aria-label="Toggle Tooltips"
           title={isTooltipEnabled ? "Disable tooltips" : "Enable tooltips"}
         >
-          <IconHelp className="w-4 h-4 sm:w-5 sm:h-5" />
-          <span className="text-xs font-medium">Tips</span>
+          <IconHelp className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5" />
+          <span className="text-xs font-medium hidden sm:inline">Tips</span>
         </button>
 
         {/* Language Selector */}
         <div className="relative">
           <button
             onClick={() => setLanguageDropdownOpen(!languageDropdownOpen)}
-            className="relative text-gray-500 hover:text-primary p-2"
+            className="relative text-gray-500 hover:text-primary p-1.5 sm:p-2"
             aria-label={t('header.changeLanguage')}
             aria-expanded={languageDropdownOpen}
             aria-haspopup="true"
           >
-            <IconLanguage className="w-5 h-5 sm:w-6 sm:h-6" />
+            <IconLanguage className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
           </button>
           {languageDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50" role="menu">
+            <div className="absolute right-0 mt-2 w-40 sm:w-48 bg-white rounded-md shadow-lg py-1 z-50 border" role="menu">
               {LANGUAGES.map((lang) => (
                 <button
                   key={lang.code}
                   onClick={() => handleLanguageChange(lang.code)}
                   role="menuitem"
-                  className={`block w-full text-left px-4 py-2 text-sm ${currentLanguage === lang.code ? 'bg-primary-light text-primary-dark font-semibold' : 'text-gray-700 hover:bg-gray-100'}`}
+                  className={`block w-full text-left px-3 sm:px-4 py-2 text-xs sm:text-sm ${currentLanguage === lang.code ? 'bg-primary-light text-primary-dark font-semibold' : 'text-gray-700 hover:bg-gray-100'}`}
                 >
                   {lang.nativeName} ({lang.name})
                 </button>
               ))}
             </div>
           )}
-        </div>        <button
+        </div>
+
+        <button
           onClick={handleNotificationClick}
-          className="relative text-gray-500 hover:text-primary p-2"
+          className="relative text-gray-500 hover:text-primary p-1.5 sm:p-2"
           aria-label={t('header.viewNotifications')}
         >
-          <IconNotification className="w-5 h-5 sm:w-6 sm:h-6" />
-          <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
+          <IconNotification className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+          <span className="absolute top-0.5 sm:top-1 right-0.5 sm:right-1 block h-2 w-2 rounded-full bg-red-500 ring-1 sm:ring-2 ring-white" />
         </button>
 
         {/* User Profile Dropdown */}
         <div className="relative">
           <button
             onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-            className="flex items-center text-sm text-gray-700 hover:text-primary focus:outline-none p-2"
+            className="flex items-center text-xs sm:text-sm text-gray-700 hover:text-primary focus:outline-none p-1.5 sm:p-2"
             aria-expanded={userDropdownOpen}
             aria-haspopup="true"
           >
-            <IconUserCircle className="w-6 h-6 sm:w-8 sm:h-8 rounded-full mr-1 sm:mr-2" />
-            <span className="hidden sm:block">{t('header.adminUser')}</span>
+            <IconUserCircle className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 rounded-full mr-1" />
+            <span className="hidden md:block text-xs sm:text-sm">{t('header.adminUser')}</span>
             <IconChevronDown className={`w-3 h-3 sm:w-4 sm:h-4 ml-1 transform transition-transform duration-200 ${userDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
           {userDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50" role="menu">
-              <button role="menuitem" className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{t('header.dropdown.profile')}</button>
-              <button role="menuitem" className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{t('header.dropdown.settings')}</button>
-              <button role="menuitem" className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{t('header.dropdown.logout')}</button>
+            <div className="absolute right-0 mt-2 w-40 sm:w-48 bg-white rounded-md shadow-lg py-1 z-50 border" role="menu">
+              <button role="menuitem" className="block w-full text-left px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-100">{t('header.dropdown.profile')}</button>
+              <button role="menuitem" className="block w-full text-left px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-100">{t('header.dropdown.settings')}</button>
+              <button role="menuitem" className="block w-full text-left px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-100">{t('header.dropdown.logout')}</button>
             </div>
           )}
         </div>

@@ -75,7 +75,7 @@ body {
   height: 100% !important;
 }
 
-/* Fix for mobile responsiveness */
+/* Fix for mobile responsiveness - Enhanced for iPhone 16 Pro Max */
 @media (max-width: 768px) {
   .mobile-hidden {
     display: none;
@@ -83,6 +83,151 @@ body {
   
   .mobile-full {
     width: 100%;
+  }
+
+  /* Root container adjustments */
+  #root {
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile */
+    overflow: hidden;
+  }
+
+  /* Body and main container optimizations */
+  body {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  /* Content container improvements */
+  .space-y-6 > * + * {
+    margin-top: 1rem !important;
+  }
+
+  .space-y-4 > * + * {
+    margin-top: 0.75rem !important;
+  }
+
+  /* Button and input improvements for mobile */
+  input, textarea, select {
+    font-size: 16px !important; /* Prevents zoom on iOS */
+    padding: 12px !important;
+    border-radius: 8px !important;
+  }
+
+  button {
+    min-height: 44px; /* iOS accessibility guideline */
+    font-size: 16px;
+    padding: 12px 16px;
+  }
+
+  /* Card and container improvements */
+  .bg-card, .shadow-lg {
+    margin: 8px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* Text size adjustments */
+  .text-2xl {
+    font-size: 1.25rem !important;
+  }
+
+  .text-xl {
+    font-size: 1.125rem !important;
+  }
+
+  .text-lg {
+    font-size: 1rem !important;
+  }
+
+  /* Spacing adjustments */
+  .p-6 {
+    padding: 1rem !important;
+  }
+
+  .p-4 {
+    padding: 0.75rem !important;
+  }
+
+  .mt-8 {
+    margin-top: 1.5rem !important;
+  }
+
+  .mt-6 {
+    margin-top: 1rem !important;
+  }
+
+  .mt-4 {
+    margin-top: 0.75rem !important;
+  }
+
+  /* Flexbox improvements for mobile */
+  .flex-col {
+    min-height: 0;
+  }
+
+  .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+}
+
+/* iPhone 16 Pro Max specific optimizations */
+@media (max-width: 430px) and (min-height: 900px) {
+  /* Large phone specific adjustments */
+  .space-y-6 > * + * {
+    margin-top: 1.25rem !important;
+  }
+
+  input, textarea, select {
+    padding: 14px !important;
+    font-size: 16px !important;
+  }
+
+  button {
+    min-height: 48px;
+    padding: 14px 18px;
+  }
+
+  .text-2xl {
+    font-size: 1.375rem !important;
+  }
+
+  .text-xl {
+    font-size: 1.25rem !important;
+  }
+
+  /* Better spacing for large screens */
+  .bg-card {
+    margin: 12px;
+    padding: 1.25rem !important;
+  }
+}
+
+/* Landscape orientation fixes for mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .space-y-6 > * + * {
+    margin-top: 0.5rem !important;
+  }
+
+  .space-y-4 > * + * {
+    margin-top: 0.375rem !important;
+  }
+
+  .p-6, .p-4 {
+    padding: 0.5rem !important;
+  }
+
+  .mt-8, .mt-6 {
+    margin-top: 0.75rem !important;
+  }
+
+  .text-2xl {
+    font-size: 1.125rem !important;
+  }
+
+  .text-xl {
+    font-size: 1rem !important;
   }
 }
 
@@ -186,6 +331,37 @@ body {
   }
 }
 
+/* Input field text color fix - ensure all inputs have visible black text */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+textarea,
+select {
+  color: #111827 !important; /* Force dark gray/black text */
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="search"]:focus,
+input[type="tel"]:focus,
+input[type="url"]:focus,
+textarea:focus,
+select:focus {
+  color: #111827 !important; /* Ensure focused inputs also have black text */
+}
+
+/* Placeholder text should be visible but lighter */
+input::placeholder,
+textarea::placeholder {
+  color: #6B7280 !important; /* Medium gray for placeholders */
+}
+
 /* Markdown-specific styles for chatbot responses */
 .chatbot-response strong,
 .chatbot-response b {
@@ -246,4 +422,173 @@ body {
   border-radius: 0.25rem !important;
   font-family: 'Courier New', monospace !important;
   font-size: 0.875rem !important;
+}
+
+/* Enhanced Mobile Optimizations for iPhone 16 Pro Max and Similar Devices */
+
+/* Safe area insets for devices with notches/dynamic islands */
+@supports (padding: max(0px)) {
+  #root {
+    padding-top: max(0px, env(safe-area-inset-top));
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Enhanced viewport settings for mobile devices */
+html {
+  height: 100%;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for better mobile support */
+}
+
+/* Prevent zoom on input focus for iOS */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="password"],
+  input[type="search"],
+  select,
+  textarea {
+    font-size: 16px !important;
+    transform: scale(1) !important;
+  }
+}
+
+/* Touch-friendly scrolling and interactions */
+* {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* iPhone 16 Pro Max specific optimizations (6.9 inches, 2868×1320, 458 ppi) */
+@media screen and (max-width: 430px) and (min-height: 900px) and (-webkit-min-device-pixel-ratio: 3) {
+  /* Large iPhone specific adjustments */
+  body {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  /* Enhanced touch targets */
+  button, 
+  .btn, 
+  input[type="submit"], 
+  input[type="button"] {
+    min-height: 48px !important;
+    min-width: 48px !important;
+    padding: 12px 16px !important;
+  }
+
+  /* Improved spacing for large screens */
+  .space-y-6 > * + * {
+    margin-top: 1.5rem !important;
+  }
+
+  .space-y-4 > * + * {
+    margin-top: 1rem !important;
+  }
+
+  /* Better text sizing for high DPI */
+  .text-2xl {
+    font-size: 1.5rem !important;
+  }
+
+  .text-xl {
+    font-size: 1.375rem !important;
+  }
+
+  .text-lg {
+    font-size: 1.25rem !important;
+  }
+
+  /* Enhanced card styling */
+  .bg-card, .shadow-lg {
+    border-radius: 16px !important;
+    padding: 1.5rem !important;
+    margin: 16px 12px !important;
+  }
+
+  /* Optimized input fields */
+  input, textarea, select {
+    padding: 16px !important;
+    border-radius: 12px !important;
+    font-size: 16px !important;
+  }
+}
+
+/* Landscape mode optimizations for mobile */
+@media screen and (max-height: 500px) and (orientation: landscape) and (max-width: 932px) {
+  /* Compact vertical space usage */
+  .space-y-6 > * + * {
+    margin-top: 0.75rem !important;
+  }
+
+  .space-y-4 > * + * {
+    margin-top: 0.5rem !important;
+  }
+
+  /* Smaller padding for landscape */
+  .p-6, .p-4 {
+    padding: 0.75rem !important;
+  }
+
+  /* Compact text sizes */
+  .text-2xl {
+    font-size: 1.25rem !important;
+  }
+
+  .text-xl {
+    font-size: 1.125rem !important;
+  }
+
+  /* Header height adjustment */
+  header {
+    height: 3rem !important;
+  }
+
+  /* Sidebar adjustments */
+  aside {
+    width: 240px !important;
+  }
+}
+
+/* Enhanced touch interaction feedback */
+@media (hover: none) and (pointer: coarse) {
+  button:active,
+  .btn:active,
+  .card-hover:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+
+  /* Better tap highlight */
+  * {
+    -webkit-tap-highlight-color: rgba(16, 185, 129, 0.2);
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  input, textarea, select {
+    border-width: 2px !important;
+    border-color: #000 !important;
+  }
+
+  button {
+    border: 2px solid currentColor !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

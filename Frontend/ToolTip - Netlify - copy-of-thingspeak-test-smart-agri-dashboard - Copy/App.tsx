@@ -17,7 +17,7 @@ const App: React.FC = () => {
   const [showTrainingManager, setShowTrainingManager] = useState(false);
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background overflow-hidden">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
@@ -35,18 +35,20 @@ const App: React.FC = () => {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden lg:ml-0">
+      <div className="flex-1 flex flex-col overflow-hidden min-h-0">
         <Header onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background p-4 sm:p-6">
-          <Routes>
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/crop-management" element={<CropManagementPage />} />
-            <Route path="/iot-sensors" element={<IoTSensorsPage />} />
-            <Route path="/analytics" element={<AnalyticsPage />} />
-            <Route path="/ml-models" element={<MLModelsPage />} />
-            <Route path="/notifications" element={<NotificationsPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-          </Routes>
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background p-2 sm:p-4 lg:p-6 min-h-0">
+          <div className="max-w-full mx-auto">
+            <Routes>
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/crop-management" element={<CropManagementPage />} />
+              <Route path="/iot-sensors" element={<IoTSensorsPage />} />
+              <Route path="/analytics" element={<AnalyticsPage />} />
+              <Route path="/ml-models" element={<MLModelsPage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+            </Routes>
+          </div>
         </main>
       </div>
       
@@ -60,7 +62,7 @@ const App: React.FC = () => {
       
       {/* Admin Training Access - Press Ctrl+Shift+T */}
       <div 
-        className="fixed bottom-4 left-4 z-40"
+        className="fixed bottom-2 sm:bottom-4 left-2 sm:left-4 z-40"
         onKeyDown={(e) => {
           if (e.ctrlKey && e.shiftKey && e.key === 'T') {
             setShowTrainingManager(true);
@@ -70,10 +72,12 @@ const App: React.FC = () => {
       >
         <button
           onClick={() => setShowTrainingManager(true)}
-          className="bg-purple-500 text-white px-3 py-1 rounded text-xs hover:bg-purple-600 transition-colors"
+          className="bg-purple-500 text-white px-2 sm:px-3 py-1 sm:py-2 rounded text-xs sm:text-sm hover:bg-purple-600 transition-colors shadow-lg flex items-center gap-1"
           title="Train Chatbot (Ctrl+Shift+T)"
         >
-          🧠 Train Bot
+          <span className="text-xs sm:text-sm">🧠</span>
+          <span className="hidden xs:inline sm:inline">Train Bot</span>
+          <span className="xs:hidden sm:hidden">🧠</span>
         </button>
       </div>
     </div>

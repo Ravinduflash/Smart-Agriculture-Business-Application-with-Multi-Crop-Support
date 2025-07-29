@@ -19,12 +19,12 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, label, onClick }) => (
     to={to}
     onClick={onClick}
     className={({ isActive }) =>
-      `flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-150 ease-in-out
+      `flex items-center px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium rounded-lg transition-colors duration-150 ease-in-out
        ${isActive ? 'bg-primary-dark text-white' : 'text-gray-200 hover:bg-primary hover:text-white'}`
     }
   >
     {icon}
-    <span className="ml-3">{label}</span>
+    <span className="ml-2 sm:ml-3 truncate">{label}</span>
   </NavLink>
 );
 
@@ -32,52 +32,52 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
   const { t } = useContext(LanguageContext);
 
   const navItems = [
-    { to: '/', icon: <IconDashboard className="w-5 h-5" />, label: t('sidebar.dashboard') },
-    { to: '/crop-management', icon: <IconCrop className="w-5 h-5" />, label: t('sidebar.cropManagement') },
-    { to: '/iot-sensors', icon: <IconSensor className="w-5 h-5" />, label: t('sidebar.iotSensors') },
-    { to: '/analytics', icon: <IconAnalytics className="w-5 h-5" />, label: t('sidebar.analyticsReports') },
-    { to: '/ml-models', icon: <IconChip className="w-5 h-5" />, label: t('sidebar.mlModels') },
-    { to: '/notifications', icon: <IconNotification className="w-5 h-5" />, label: t('sidebar.notifications') },
+    { to: '/', icon: <IconDashboard className="w-4 h-4 sm:w-5 sm:h-5" />, label: t('sidebar.dashboard') },
+    { to: '/crop-management', icon: <IconCrop className="w-4 h-4 sm:w-5 sm:h-5" />, label: t('sidebar.cropManagement') },
+    { to: '/iot-sensors', icon: <IconSensor className="w-4 h-4 sm:w-5 sm:h-5" />, label: t('sidebar.iotSensors') },
+    { to: '/analytics', icon: <IconAnalytics className="w-4 h-4 sm:w-5 sm:h-5" />, label: t('sidebar.analyticsReports') },
+    { to: '/ml-models', icon: <IconChip className="w-4 h-4 sm:w-5 sm:h-5" />, label: t('sidebar.mlModels') },
+    { to: '/notifications', icon: <IconNotification className="w-4 h-4 sm:w-5 sm:h-5" />, label: t('sidebar.notifications') },
   ];
 
   const settingNavItems = [
-     { to: '/settings', icon: <IconSettings className="w-5 h-5" />, label: t('sidebar.settings') },
+     { to: '/settings', icon: <IconSettings className="w-4 h-4 sm:w-5 sm:h-5" />, label: t('sidebar.settings') },
   ];
 
   return (
-    <aside className="w-64 bg-primary-darker text-textLight flex flex-col p-4 space-y-4 h-full" style={{backgroundColor: '#065f46' /* emerald-800 */}}>
+    <aside className="w-64 bg-primary-darker text-textLight flex flex-col p-3 sm:p-4 space-y-3 sm:space-y-4 h-full overflow-y-auto" style={{backgroundColor: '#065f46' /* emerald-800 */}}>
       {/* Close button for mobile */}
-      <div className="flex items-center justify-between lg:justify-center py-4 px-2">
-        <div className="flex items-center">
-          <IconLeaf className="w-8 h-8 lg:w-10 lg:h-10 text-primary-light mr-2" />
-          <h1 className="text-lg lg:text-2xl font-semibold text-white">
+      <div className="flex items-center justify-between lg:justify-center py-2 sm:py-4 px-1 sm:px-2">
+        <div className="flex items-center min-w-0 flex-1">
+          <IconLeaf className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-primary-light mr-2 flex-shrink-0" />
+          <h1 className="text-sm sm:text-lg lg:text-2xl font-semibold text-white truncate">
             {t('app.title.smart')} <span className="font-light">{t('app.title.agri')}</span>
           </h1>
         </div>
         <button
           onClick={onClose}
-          className="lg:hidden text-gray-300 hover:text-white p-2"
+          className="lg:hidden text-gray-300 hover:text-white p-1.5 sm:p-2 flex-shrink-0"
           aria-label="Close menu"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
       
-      <nav className="flex-1 space-y-2">
+      <nav className="flex-1 space-y-1 sm:space-y-2 min-h-0">
         {navItems.map((item) => (
           <NavItem key={item.to} {...item} onClick={onClose} />
         ))}
       </nav>
       
-      <nav className="space-y-2 pt-4 border-t border-emerald-700">
+      <nav className="space-y-1 sm:space-y-2 pt-3 sm:pt-4 border-t border-emerald-700">
          {settingNavItems.map((item) => (
           <NavItem key={item.to} {...item} onClick={onClose} />
         ))}
       </nav>
       
-      <div className="mt-auto p-2 text-center text-xs text-gray-400">
+      <div className="mt-auto p-1 sm:p-2 text-center text-xs text-gray-400 flex-shrink-0">
         <p>&copy; {new Date().getFullYear()} {t('app.footer.solutions')}</p>
       </div>
     </aside>
