@@ -1,0 +1,2 @@
+timestamp,air_temp_c,humidity_percent,water_soil_temp_c,air_pressure_hpa,air_pressure_status,soil_moisture_raw,soil_moisture_status,light_level_raw,light_level_status,rain_level_raw,rain_level_status,co2_ppm,nh3_ppm,voc_ppm,nitrogen_mg_kg,nitrogen_status,phosphorus_mg_kg,phosphorus_status,potassium_mg_kg,potassium_status
+2025-08-29 12:13:33,31.11,77.65,26.41,1000.01,Low (Unsettled),14816,Wet,12633,Medium Light,17572,Moderate Rain,469.83,8.56,0.76,126,High,55,High,83,Optimal
