@@ -48,7 +48,7 @@ AIR_PRESSURE_THRESHOLDS = {
 # Note: Lower ADC value means WETTER soil.
 SOIL_MOISTURE_DRY = 25570       # UPDATED: Your value in bone-dry soil/air.
 SOIL_MOISTURE_WET = 11922       # UPDATED: Your value when submerged in water.
-SOIL_THRESHOLDS = {"low": 23000, "optimal": 16000} # UPDATED: Dry if > low, Optimal if < low and > optimal, Wet if < optimal.
+SOIL_THRESHOLDS = {"low": 20000, "optimal": 14000} # UPDATED for Kangkong: Shifted to reflect preference for higher moisture (wetter optimal range). Dry if > low, Optimal if < low and > optimal, Wet if < optimal.
 
 # --- 4. Light Level Thresholds (Raw ADC Values) ---
 # Find these values by testing the LDR in darkness and bright light.
@@ -77,18 +77,18 @@ MQ135_R0 = 664.75  # UPDATED: Resistance in clean air (kOhms), calculated from y
 # --- 7. NPK Sensor Calibration & Thresholds for Kangkong ---
 # Calibrate against a lab test if possible: OFFSET = (Lab Value - Sensor Value)
 NPK_CALIBRATION_OFFSETS = {"N": 0, "P": 0, "K": 0}
-# UPDATED: Nutrient thresholds specifically for Kangkong. 
-# Note: These are currently the same as Amaranthus and may need adjustment.
-# These values are in mg/kg.
+# UPDATED: Nutrient thresholds specifically for Kangkong (LIAO 9 variety). 
+# Increased for high N demand (leafy growth); adjusted P and K based on DOA/Sri Lankan recommendations and general requirements.
+# These values are in mg/kg (ppm). Optimal ranges reflect high nutrient needs: N (80-150), P (30-60), K (60-120).
 NPK_THRESHOLDS = {
     # Kangkong has a high nitrogen demand for leafy growth.
-    "N": {"low": 60, "optimal": 120},
+    "N": {"low": 80, "optimal": 150},
 
     # Phosphorus is essential for root development.
-    "P": {"low": 25, "optimal": 50},
+    "P": {"low": 30, "optimal": 60},
 
     # Potassium supports overall plant health and resilience.
-    "K": {"low": 50, "optimal": 100}
+    "K": {"low": 60, "optimal": 120}
 }
 
 # =================================================================================
