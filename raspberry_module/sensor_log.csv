@@ -1,0 +1,9 @@
+timestamp,air_temp_c,humidity_percent,water_soil_temp_c,air_pressure_hpa,air_pressure_status,soil_moisture_raw,soil_moisture_status,light_level_raw,light_level_status,rain_level_raw,rain_level_status,co2_ppm,nh3_ppm,voc_ppm,nitrogen_mg_kg,nitrogen_status,phosphorus_mg_kg,phosphorus_status,potassium_mg_kg,potassium_status
+2025-09-18 16:02:18,N/A,N/A,N/A,1009.65,Normal,25135,Dry,912,Bright Light,24736,Light Rain,420720.71,153614.54,512488.25,0,Low,4,Low,N/A,N/A
+2025-09-18 16:07:21,34.35,77.00,N/A,1009.67,Normal,25075,Dry,910,Bright Light,24793,Light Rain,436503.20,158750.83,532314.38,0,Low,4,Low,0,Low
+2025-09-18 16:12:24,34.25,73.40,N/A,1009.58,Normal,25081,Dry,911,Bright Light,24801,Light Rain,428638.55,156193.87,522431.92,0,Low,4,Low,0,Low
+2025-09-18 16:15:43,N/A,N/A,N/A,1009.68,Normal,25098,Dry,912,Bright Light,24668,Light Rain,405723.44,148714.68,493669.63,0,Low,4,Low,N/A,N/A
+2025-09-18 16:15:58,N/A,N/A,N/A,1009.65,Normal,25108,Dry,912,Bright Light,24669,Light Rain,402485.40,147654.23,489609.31,0,Low,4,Low,N/A,N/A
+2025-09-18 16:19:36,N/A,N/A,N/A,1009.67,Normal,25098,Dry,911,Bright Light,24739,Light Rain,407187.34,149193.80,495505.61,0,Low,4,Low,N/A,N/A
+2025-09-18 16:47:30,29.65,86.70,29.81,1009.32,Normal,25607,Dry,929,Bright Light,25948,Dry,423739.10,154598.43,516278.24,0,Low,6,Low,N/A,N/A
+2025-09-18 16:52:32,28.45,91.50,29.56,1009.17,Normal,25618,Dry,930,Bright Light,26012,Dry,442390.32,160661.63,539715.51,0,Low,15,Low,7,Low
