@@ -1,2 +1,5 @@
 timestamp,air_temp_c,humidity_percent,water_soil_temp_c,air_pressure_hpa,air_pressure_status,soil_moisture_raw,soil_moisture_status,light_level_raw,light_level_status,rain_level_raw,rain_level_status,co2_ppm,nh3_ppm,voc_ppm,nitrogen_mg_kg,nitrogen_status,phosphorus_mg_kg,phosphorus_status,potassium_mg_kg,potassium_status
 2025-08-29 12:13:33,31.11,77.65,26.41,1000.01,Low (Unsettled),14816,Wet,12633,Medium Light,17572,Moderate Rain,469.83,8.56,0.76,126,High,55,High,83,Optimal
+2025-10-01 16:02:59,29.12,78.13,25.77,1010.66,Normal,20604,Optimal,13108,Medium Light,18469,Light Rain,689.58,5.71,0.22,122,High,56,High,43,Low
+2025-10-01 16:03:14,30.42,61.02,28.84,1002.59,Low (Unsettled),22210,Optimal,18949,Low Light,25909,Dry,614.53,1.01,0.53,85,Optimal,45,Optimal,55,Optimal
+2025-10-01 16:23:35,28.80,63.71,26.71,1009.72,Normal,14737,Wet,14167,Medium Light,24009,Light Rain,511.29,7.08,0.84,124,High,47,Optimal,48,Low
