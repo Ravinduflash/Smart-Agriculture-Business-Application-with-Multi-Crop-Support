@@ -1,18 +1,15 @@
-import serial
-import time
-import binascii
-
+# -*- coding: utf-8 -*-
 import serial
 import time
 import binascii
 
 # Configure RS485 communication
 try:
-    ser = serial.Serial('/dev/ttyUSB0', 4800, timeout=5)  # Changed baud rate to 4800
+    ser = serial.Serial('/dev/ttyUSB0', 4800, timeout=5)
     print("Serial port opened successfully.")
 except Exception as e:
     print(f"Error opening serial port: {e}")
-    exit(1)
+    ser = None
 
 # Function to calculate CRC16 for Modbus
 def calculate_crc(data):
@@ -27,48 +24,71 @@ def calculate_crc(data):
                 crc >>= 1
     return crc.to_bytes(2, byteorder='little')
 
-# Continuously read NPK values in real-time
-while True:
+# NPK thresholds for different crops
+THRESHOLDS = {
+    "N": {"low": 60, "optimal": 120},
+    "P": {"low": 25, "optimal": 50}, 
+    "K": {"low": 50, "optimal": 100}
+}
+
+def get_nutrient_status(value, nutrient):
+    """Get nutrient status based on value"""
+    if value < THRESHOLDS[nutrient]["low"]:
+        return "Low"
+    elif value <= THRESHOLDS[nutrient]["optimal"]:
+        return "Optimal"
+    else:
+        return "High"
+
+def main():
+    print("NPK Sensor Test")
+    print("=" * 30)
+    
+    if not ser:
+        print("Serial port not available. Exiting.")
+        return
+    
     try:
-        # Queries for N, P, and K
-        queries = {
-            "N": b"\x01\x03\x00\x1E\x00\x01",
-            "P": b"\x01\x03\x00\x1F\x00\x01",
-            "K": b"\x01\x03\x00\x20\x00\x01"
-        }
-
-        results = {}
-
-        for nutrient, query in queries.items():
-            crc = calculate_crc(query)
-            full_query = query + crc
-            print(f"Sending query for {nutrient}: {binascii.hexlify(full_query)}")
-            ser.write(full_query)
-            time.sleep(0.1)  # Small delay to allow sensor to respond
-
-            # Read response
-            response = ser.read(7)  # Adjust expected response length if needed
-            if response:
-                print(f"Raw Sensor Data for {nutrient}: {binascii.hexlify(response)}")
-                # Updated nitrogen calculation based on the user guide example
+        while True:
+            # Queries for N, P, and K
+            queries = {
+                "N": b"\x01\x03\x00\x1E\x00\x01",
+                "P": b"\x01\x03\x00\x1F\x00\x01", 
+                "K": b"\x01\x03\x00\x20\x00\x01"
+            }
+            
+            results = {}
+            
+            for nutrient, query in queries.items():
+                crc = calculate_crc(query)
+                full_query = query + crc
+                print(f"Querying {nutrient}...")
+                
+                ser.write(full_query)
+                time.sleep(0.2)
+                
+                response = ser.read(7)
                 if len(response) >= 7:
-                    data = response[3:5]  # Extract data bytes
-                    value = int.from_bytes(data, byteorder='big')
-                    if nutrient == "N":
-                        results[nutrient] = value  # Nitrogen content in mg/kg
-                    elif nutrient == "P":
-                        results[nutrient] = value  # Phosphorus content in mg/kg
-                    elif nutrient == "K":
-                        results[nutrient] = value  # Potassium content in mg/kg
+                    value = int.from_bytes(response[3:5], byteorder='big')
+                    status = get_nutrient_status(value, nutrient)
+                    results[nutrient] = {"value": value, "status": status}
+                    print(f"{nutrient}: {value} mg/kg ({status})")
                 else:
-                    print(f"Incomplete response for {nutrient}.")
-            else:
-                print(f"No response received for {nutrient}. Check connections and query.")
-
-        # Print results
-        print(f"N: {results.get('N', 'N/A')} mg/kg, P: {results.get('P', 'N/A')} mg/kg, K: {results.get('K', 'N/A')} mg/kg")
-        time.sleep(2)  # Wait 2 seconds before the next set of queries
-
+                    print(f"{nutrient}: No response")
+                    results[nutrient] = {"value": "N/A", "status": "N/A"}
+                
+                time.sleep(1)
+            
+            print("-" * 30)
+            time.sleep(5)
+            
+    except KeyboardInterrupt:
+        print("\nProgram stopped")
     except Exception as e:
-        print(f"Error during communication: {e}")
-    time.sleep(2)
+        print(f"Error: {e}")
+    finally:
+        if ser and ser.is_open:
+            ser.close()
+
+if __name__ == "__main__":
+    main()

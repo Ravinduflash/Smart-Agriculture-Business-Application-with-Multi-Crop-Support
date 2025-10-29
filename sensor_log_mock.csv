@@ -1,0 +1,6 @@
+timestamp,air_temp_c,humidity_percent,water_soil_temp_c,air_pressure_hpa,air_pressure_status,soil_moisture_raw,soil_moisture_status,light_level_raw,light_level_status,rain_level_raw,rain_level_status,co2_ppm,nh3_ppm,voc_ppm,nitrogen_mg_kg,nitrogen_status,phosphorus_mg_kg,phosphorus_status,potassium_mg_kg,potassium_status
+2025-08-22 17:26:02,31.41,76.45,26.73,1017.76,High (Stable),16112,Optimal,18607,Low Light,23314,Light Rain,779.32,6.90,0.30,66,Optimal,31,Optimal,51,Optimal
+2025-08-22 17:26:17,30.39,61.66,25.89,1005.34,Normal,15457,Wet,25315,Very Dark,18126,Light Rain,702.56,1.50,0.99,50,Low,23,Low,102,High
+2025-08-22 17:26:32,31.31,66.52,27.82,1019.75,High (Stable),21141,Optimal,25718,Very Dark,17071,Moderate Rain,774.34,9.95,0.80,92,Optimal,30,Optimal,42,Low
+2025-08-22 17:26:47,29.39,65.32,27.01,1002.04,Low (Unsettled),22810,Optimal,6947,Bright Light,25356,Dry,593.11,3.95,0.19,76,Optimal,27,Optimal,77,Optimal
+2025-08-22 17:27:02,29.08,69.44,25.78,1011.55,Normal,17333,Optimal,21626,Low Light,22875,Light Rain,556.65,2.48,0.75,103,Optimal,39,Optimal,96,Optimal

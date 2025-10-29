@@ -11,8 +11,7 @@ from smbus2 import SMBus
 import serial
 import os
 import binascii
-import urllib.request
-import urllib.parse
+import requests
 import csv # NEW: Imported the csv library for file logging
 
 # =================================================================================
@@ -441,15 +440,14 @@ def send_to_thingspeak(api_key, sensor_data):
         print("No valid numeric data to send to ThingSpeak.")
         return
     try:
-        params = urllib.parse.urlencode(payload)
-        full_url = f"{base_url}?{params}"
-        with urllib.request.urlopen(full_url, timeout=10) as response:
-            response_text = response.read().decode('utf-8')
-            if response.status == 200 and response_text != "0":
-                print(f"Data sent to ThingSpeak. Entry ID: {response_text}")
-            else:
-                print(f"Failed to send to ThingSpeak. Response: {response_text} (Code: {response.status})")
-    except Exception as e:
+        response = requests.get(base_url, params=payload, timeout=10)
+        response.raise_for_status()  # Raise an exception for bad status codes
+        response_text = response.text
+        if response_text != "0":
+            print(f"Data sent to ThingSpeak. Entry ID: {response_text}")
+        else:
+            print(f"Failed to send to ThingSpeak. Response: {response_text} (Code: {response.status_code})")
+    except requests.exceptions.RequestException as e:
         print(f"Error sending data to ThingSpeak: {e}")
 
 # NEW: Function to log data to a local CSV file

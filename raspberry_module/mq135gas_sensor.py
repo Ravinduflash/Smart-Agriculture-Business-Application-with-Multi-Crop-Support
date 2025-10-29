@@ -1,7 +1,9 @@
-import time
-import board
-import busio
-import adafruit_ads1x15.ads1115 as ADS
+# -*- coding: utf-8 -*-
+"""
+MQ135 Gas Sensor - Agricultural Air Quality Monitor
+Measures CO2, NH3, and VOC levels for smart agriculture applications
+"""
+
 import time
 import board
 import busio
@@ -75,39 +77,54 @@ def recommend_crops(co2, nh3, voc):
             suitable_crops.append(f"{crop}: {limits['notes']}")
     return suitable_crops if suitable_crops else ["No crops recommended: Gas levels too high."]
 
-while True:
-    try:
-        voltage = mq135_channel.voltage  # Voltage from ADC
-        rs = calculate_resistance(voltage)  # Sensor resistance
-        
-        # Calculate concentrations for each gas
-        concentrations = {
-            'CO2': calculate_concentration(rs, 'CO2'),
-            'NH3': calculate_concentration(rs, 'NH3'),
-            'VOC': calculate_concentration(rs, 'VOC')
-        }
-        
-        # Interpret agricultural impact
-        interpretations = {
-            gas: interpret_agriculture_impact(gas, conc) 
-            for gas, conc in concentrations.items()
-        }
-        
-        # Recommend crops
-        recommended_crops = recommend_crops(
-            concentrations['CO2'], concentrations['NH3'], concentrations['VOC']
-        )
-        
-        # Print results to terminal
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        print(f"Timestamp: {timestamp}")
-        print(f"Voltage: {voltage:.2f}V, Rs: {rs:.2f} kohms")
-        for gas, conc in concentrations.items():
-            print(f"{gas}: {conc:.2f} ppm, {interpretations[gas]}")
-        print("Recommended Crops:", '; '.join(recommended_crops))
-        print("-" * 50)
-        
-    except Exception as e:
-        print(f"Error reading sensor: {e}")
+def main():
+    """Main function to read MQ135 sensor and display results."""
+    print("MQ135 Gas Sensor - Agricultural Air Quality Monitor")
+    print("=" * 50)
     
-    time.sleep(5)  # Print every minute for readability
+    try:
+        while True:
+            try:
+                # Read voltage from ADC
+                voltage = mq135_channel.voltage
+                rs = calculate_resistance(voltage)
+                
+                # Calculate concentrations for each gas
+                concentrations = {
+                    'CO2': calculate_concentration(rs, 'CO2'),
+                    'NH3': calculate_concentration(rs, 'NH3'),
+                    'VOC': calculate_concentration(rs, 'VOC')
+                }
+                
+                # Interpret agricultural impact
+                interpretations = {
+                    gas: interpret_agriculture_impact(gas, conc) 
+                    for gas, conc in concentrations.items()
+                }
+                
+                # Recommend crops
+                recommended_crops = recommend_crops(
+                    concentrations['CO2'], concentrations['NH3'], concentrations['VOC']
+                )
+                
+                # Print results to terminal
+                timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                print(f"Timestamp: {timestamp}")
+                print(f"Voltage: {voltage:.2f}V, Rs: {rs:.6f} kohms")
+                
+                for gas, conc in concentrations.items():
+                    print(f"{gas}: {conc:.2f} ppm - {interpretations[gas]}")
+                
+                print("Recommended Crops:", '; '.join(recommended_crops))
+                print("-" * 50)
+                
+            except Exception as e:
+                print(f"Error reading sensor: {e}")
+            
+            time.sleep(5)  # Wait 5 seconds between readings
+            
+    except KeyboardInterrupt:
+        print("\nProgram stopped")
+
+if __name__ == "__main__":
+    main()
