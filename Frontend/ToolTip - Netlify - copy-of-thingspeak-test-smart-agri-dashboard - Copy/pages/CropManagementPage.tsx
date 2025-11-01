@@ -9,6 +9,7 @@ import Spinner from '../components/Spinner';
 import GeminiResponseDisplay from '../components/GeminiResponseDisplay';
 import { LanguageContext } from '../contexts/LanguageContext';
 import { fetchThingSpeakData, parseFloatSafe, ThingSpeakFeed } from '../services/thingSpeakService'; // Added Sensor type
+import { firestoreService, CropProfile } from '../src/services/firestoreService';
 
 const CropCard: React.FC<{ crop: Crop; t: (key: string) => string }> = ({ crop, t }) => (
   <div className="bg-card rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
@@ -67,7 +68,36 @@ function CropManagementPage(): JSX.Element {
   const [recommendationError, setRecommendationError] = useState<string | null>(null);
 
   useEffect(() => {
-    setCrops(getMockCrops());
+    // Load crops from Firestore instead of mock data
+    const loadCropsFromFirestore = async () => {
+      try {
+        const firestoreCrops = await firestoreService.getAllCropProfiles();
+        
+        // Transform Firestore crop profiles to match the Crop interface
+        const transformedCrops: Crop[] = firestoreCrops.map((profile: CropProfile) => ({
+          id: profile.cropId,
+          name: profile.name,
+          imageUrl: profile.imageUrl || DEFAULT_IMAGE_URL,
+          waterNeeds: profile.optimalConditions.waterNeeds,
+          optimalPh: profile.optimalConditions.optimalPh,
+          sunlight: profile.optimalConditions.sunlight,
+          details: profile.description,
+          lastUpdated: profile.lastUpdated 
+            ? new Date((profile.lastUpdated as any).toDate()).toLocaleString()
+            : new Date().toLocaleString()
+        }));
+        
+        setCrops(transformedCrops);
+        console.log('✅ Loaded crops from Firestore:', transformedCrops);
+      } catch (error) {
+        console.error('❌ Error loading crops from Firestore:', error);
+        // Fallback to mock data if Firestore fails
+        setCrops(getMockCrops());
+      }
+    };
+
+    loadCropsFromFirestore();
+    
     const loadLiveData = async () => {
         setIsLoadingLiveData(true);
         const tsData = await fetchThingSpeakData(1); // Fetch latest entry

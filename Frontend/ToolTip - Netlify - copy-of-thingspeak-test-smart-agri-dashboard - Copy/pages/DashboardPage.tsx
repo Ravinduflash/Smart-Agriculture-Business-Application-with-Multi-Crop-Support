@@ -12,6 +12,8 @@ import GeminiResponseDisplay from '../components/GeminiResponseDisplay';
 import { LanguageContext } from '../contexts/LanguageContext';
 import { fetchThingSpeakData, mapThingSpeakDataToSensors, parseFloatSafe } from '../services/thingSpeakService';
 import { useTooltip } from '../hooks/useTooltip';
+import { firestoreService } from '../src/services/firestoreService';
+import { mapFirestoreReadingToSensors } from '../services/firestoreSensorMapper';
 
 const POLLING_INTERVAL = 20000; // 20 seconds
 const AI_ADVICE_INTERVAL = 300000; // 5 minutes (300,000 ms)
@@ -20,13 +22,7 @@ const DashboardPage: React.FC = () => {
   const { currentLanguage, t } = useContext(LanguageContext);
   const { getChartTooltip } = useTooltip();
   const navigate = useNavigate();
-  const [sensors, setSensors] = useState<Sensor[]>(getMockSensors().map(s => ({
-    ...s, 
-    status: s.type === SensorType.SoilMoisture ? SoilMoistureStatusType.NotAvailable :
-            s.type === SensorType.Temperature ? TemperatureStatusType.NotAvailable :
-            s.type === SensorType.Humidity ? HumidityStatusType.NotAvailable : 'Stable', 
-    currentValue: t('common.na') 
-  })));
+  const [sensors, setSensors] = useState<Sensor[]>([]);
   const sensorsRef = useRef(sensors); // Ref to track current sensors for interval callback
   const [yieldPrediction, setYieldPrediction] = useState<ChartData[]>([]);
   const [diseaseData, setDiseaseData] = useState<PieChartData[]>([]);
@@ -36,14 +32,45 @@ const DashboardPage: React.FC = () => {
   const [isLoadingAdvice, setIsLoadingAdvice] = useState<boolean>(false);
   const [isUpcomingModelsOpen, setIsUpcomingModelsOpen] = useState(false);
 
+  // Initialize sensors with proper defaults after context is loaded
+  useEffect(() => {
+    if (sensors.length === 0 && t) {
+      const initializedSensors = getMockSensors().map(s => ({
+        ...s, 
+        status: s.type === SensorType.SoilMoisture ? SoilMoistureStatusType.NotAvailable :
+                s.type === SensorType.Temperature ? TemperatureStatusType.NotAvailable :
+                s.type === SensorType.Humidity ? HumidityStatusType.NotAvailable : 'Stable', 
+        currentValue: t('common.na') 
+      }));
+      setSensors(initializedSensors);
+      sensorsRef.current = initializedSensors;
+    }
+  }, [t, sensors.length]);
+
 
   const loadSensorData = useCallback(async (isInitialLoad = false) => {
     if (isInitialLoad) setIsLoadingSensors(true);
-    const initialSensorsBase = getMockSensors(); // Base structure
-    const thingSpeakData = await fetchThingSpeakData(1); // Fetch only latest for dashboard cards
-    const processedSensors = mapThingSpeakDataToSensors(thingSpeakData, initialSensorsBase, t);
-    setSensors(processedSensors);
-    sensorsRef.current = processedSensors; // Update ref with current sensors
+    try {
+      const initialSensorsBase = getMockSensors(); // Base structure
+      
+      // NEW: Fetch from Firestore instead of ThingSpeak
+      const readings = await firestoreService.getLatestSensorReadings('amaranthus', 1);
+      const latestReading = readings.length > 0 ? readings[0] : null;
+      
+      // Map Firestore data to sensors
+      const processedSensors = mapFirestoreReadingToSensors(latestReading, initialSensorsBase, t);
+      
+      setSensors(processedSensors);
+      sensorsRef.current = processedSensors; // Update ref with current sensors
+    } catch (error) {
+      console.error('Error loading sensor data from Firestore:', error);
+      // Fallback to ThingSpeak if Firestore fails
+      const initialSensorsBase = getMockSensors();
+      const thingSpeakData = await fetchThingSpeakData(1);
+      const processedSensors = mapThingSpeakDataToSensors(thingSpeakData, initialSensorsBase, t);
+      setSensors(processedSensors);
+      sensorsRef.current = processedSensors;
+    }
     if (isInitialLoad) setIsLoadingSensors(false);
   }, [t]);
 
@@ -154,20 +181,26 @@ const DashboardPage: React.FC = () => {
   };
   
   const getTranslatedStatus = (statusKey: Sensor['status']): string => {
-    let subKey = statusKey.toString(); // Default to the key itself if not mapped below
+    if (statusKey === undefined || statusKey === null) {
+      return t('iotSensors.status.notAvailable', { fallback: t('common.na') });
+    }
+
+    const statusString = typeof statusKey === 'string' ? statusKey : String(statusKey);
+
+    let subKey = statusString; // Default to the key itself if not mapped below
 
     if (Object.values(SoilMoistureStatusType).includes(statusKey as SoilMoistureStatusType) ||
         Object.values(TemperatureStatusType).includes(statusKey as TemperatureStatusType) ||
         Object.values(HumidityStatusType).includes(statusKey as HumidityStatusType)) {
       // These enum values are already camelCase or suitable for direct use (e.g., 'optimalMoisture', 'tooCold')
-      subKey = statusKey.toString();
+      subKey = statusString;
     } else if (typeof statusKey === 'string' && generalSensorStatusValues.includes(statusKey as GeneralSensorStatus)) {
       // For GeneralSensorStatus (e.g., 'Optimal', 'Critical'), convert to lowercase
-      subKey = statusKey.toLowerCase();
+      subKey = statusString.toLowerCase();
     }
     
     const key = `iotSensors.status.${subKey}`;
-    return t(key, { fallback: statusKey.toString() });
+    return t(key, { fallback: statusString });
   };
 
   const getStatusTextColorClass = (statusKey: Sensor['status']): string => {

@@ -1,0 +1,26 @@
+{
+  "name": "sas-firebase-functions",
+  "version": "1.0.0",
+  "description": "Cloud Functions for Smart Agriculture System",
+  "main": "index.js",
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "firebase-functions": "^4.5.0",
+    "@google-cloud/aiplatform": "^3.15.0",
+    "axios": "^1.6.2"
+  },
+  "devDependencies": {
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}

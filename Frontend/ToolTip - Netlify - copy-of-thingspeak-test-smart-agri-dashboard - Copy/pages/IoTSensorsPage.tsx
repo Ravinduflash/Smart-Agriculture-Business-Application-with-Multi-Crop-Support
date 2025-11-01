@@ -12,6 +12,8 @@ import { LanguageContext } from '../contexts/LanguageContext';
 import { fetchThingSpeakData, mapThingSpeakDataToSensors } from '../services/thingSpeakService';
 import Spinner from '../components/Spinner';
 import { useTooltipContent } from '../hooks/useTooltipContent';
+import { firestoreService } from '../src/services/firestoreService';
+import { mapFirestoreReadingToSensors, mapFirestoreReadingsToHistoricalData } from '../services/firestoreSensorMapper';
 
 interface ChartLineConfig {
   dataKey: string;
@@ -74,8 +76,9 @@ const IoTSensorsPage: React.FC = () => {
   const loadSensorData = useCallback(async (isInitialLoad = false) => {
     if (isInitialLoad) setIsLoading(true);
     
-    const initialMockSensorsBase = getMockSensors();
-     const placeholderSensors = initialMockSensorsBase.map(s => ({
+    try {
+      const initialMockSensorsBase = getMockSensors();
+      const placeholderSensors = initialMockSensorsBase.map(s => ({
         ...s, 
         currentValue: (s.type === SensorType.NPKSensor || s.type === SensorType.GasLevels) 
                         ? mapCompositeSensorToNA(s.type, t, s.currentValue)
@@ -91,18 +94,58 @@ const IoTSensorsPage: React.FC = () => {
                 s.type === SensorType.NPKSensor ? NPKStatusType.NotAvailable :
                 'Stable', 
         historicalData: [] 
-    } as Sensor));
+      } as Sensor));
 
-
-    if (isInitialLoad && sensors.length === 0) {
+      if (isInitialLoad && sensors.length === 0) {
         setSensors(placeholderSensors);
+      }
+      
+      const resultsToFetch = isInitialLoad ? INITIAL_HISTORICAL_RESULTS : HISTORICAL_RESULTS_ON_POLL;
+      
+      // NEW: Fetch from Firestore instead of ThingSpeak
+      const readings = await firestoreService.getLatestSensorReadings('amaranthus', resultsToFetch);
+      
+      console.log('Firestore readings fetched:', readings.length); // Debug log
+      
+      if (readings.length > 0) {
+        const latestReading = readings[0];
+        
+        // Map sensors with current values from latest reading
+        const processedSensors = initialMockSensorsBase.map(sensor => {
+          const mappedSensor = mapFirestoreReadingToSensors(latestReading, [sensor], t)[0];
+          
+          // Add historical data for each sensor type
+          const historicalData = mapFirestoreReadingsToHistoricalData(readings, sensor.type);
+          
+          console.log(`Sensor ${sensor.type}: ${historicalData.length} historical data points`); // Debug log
+          
+          return {
+            ...mappedSensor,
+            historicalData: historicalData
+          };
+        });
+        
+        console.log('Processed sensors:', processedSensors.map(s => ({
+          type: s.type,
+          historicalCount: s.historicalData?.length || 0
+        }))); // Debug log
+        
+        setSensors(processedSensors);
+      } else {
+        // No data in Firestore, show placeholders
+        console.warn('No Firestore data found, showing placeholders'); // Debug log
+        setSensors(placeholderSensors);
+      }
+      
+    } catch (error) {
+      console.error('Error loading sensor data from Firestore:', error);
+      // Fallback to ThingSpeak if Firestore fails
+      const initialMockSensorsBase = getMockSensors();
+      const resultsToFetch = isInitialLoad ? INITIAL_HISTORICAL_RESULTS : HISTORICAL_RESULTS_ON_POLL;
+      const thingSpeakData = await fetchThingSpeakData(resultsToFetch);
+      const processedSensors = mapThingSpeakDataToSensors(thingSpeakData, initialMockSensorsBase, t);
+      setSensors(processedSensors);
     }
-    
-    const resultsToFetch = isInitialLoad ? INITIAL_HISTORICAL_RESULTS : HISTORICAL_RESULTS_ON_POLL;
-    const thingSpeakData = await fetchThingSpeakData(resultsToFetch); 
-    
-    const processedSensors = mapThingSpeakDataToSensors(thingSpeakData, initialMockSensorsBase, t);
-    setSensors(processedSensors);
     
     if (isInitialLoad) setIsLoading(false);
   }, [t, sensors.length]); // Added sensors.length to deps for initial placeholder logic

@@ -13,6 +13,8 @@ import os
 import binascii
 import requests
 import csv # NEW: Imported the csv library for file logging
+import firebase_admin
+from firebase_admin import credentials, firestore
 
 # =================================================================================
 # --- CALIBRATION AND THRESHOLDS CONFIGURATION ---
@@ -20,6 +22,12 @@ import csv # NEW: Imported the csv library for file logging
 # Instructions: Update the values in this section to match your specific sensors,
 # crop (Kangkung), and environment for accurate readings and status reports.
 # ---------------------------------------------------------------------------------
+
+# --- Firebase/Firestore Configuration ---
+# Path to your Firebase service account JSON file
+SERVICE_ACCOUNT_PATH = "../Credientals/gen-lang-client-0092156800-3f84a3882b65.json"
+FIRESTORE_DATABASE_ID = "sasapp"  # Your Firestore database ID
+CROP_TYPE = "amaranthus"  # Current crop being monitored
 
 # --- Local Data Logging Configuration ---
 CSV_LOG_FILE = "sensor_log.csv" # The name of the CSV file to store all sensor readings
@@ -215,10 +223,43 @@ except Exception as e:
     print(f"Could not open serial port /dev/ttyUSB0 for NPK sensor: {e}")
     ser = None
 
+# --- Hardware Initialization ---
+i2c = busio.I2C(board.SCL, board.SDA)
+ads = ADS.ADS1115(i2c, address=0x48)
+dht_sensor = adafruit_dht.DHT22(board.D17)
+
+ds18_sensor_path = find_working_ds18b20_sensor()
+if ds18_sensor_path: print(f"DS18B20 sensor found at: {ds18_sensor_path}")
+else: print("No DS18B20 sensor found")
+
+bus = SMBus(1)
+calib = read_calibration_data(bus)
+
+try:
+    ser = serial.Serial('/dev/ttyUSB0', 4800, timeout=5)
+except Exception as e:
+    print(f"Could not open serial port /dev/ttyUSB0 for NPK sensor: {e}")
+    ser = None
+
 ldr_channel = AnalogIn(ads, ADS.P0)
 mq135_channel = AnalogIn(ads, ADS.P1)
 rain_channel = AnalogIn(ads, ADS.P2)
 moisture_channel = AnalogIn(ads, ADS.P3)
+
+# --- Firebase/Firestore Initialization ---
+db = None
+try:
+    # Initialize Firebase Admin SDK
+    if not firebase_admin._apps:
+        cred = credentials.Certificate(SERVICE_ACCOUNT_PATH)
+        firebase_admin.initialize_app(cred)
+    
+    # Initialize Firestore client with specific database
+    db = firestore.client(database=FIRESTORE_DATABASE_ID)
+    print(f"Successfully connected to Firestore database: {FIRESTORE_DATABASE_ID}")
+except Exception as e:
+    print(f"Warning: Could not initialize Firestore: {e}")
+    print("Sensor data will only be sent to ThingSpeak and local CSV.")
 
 # --- MQ135 Gas Sensor Calibration Constants ---
 VCC = 5.0; RL = 10.0
@@ -450,6 +491,60 @@ def send_to_thingspeak(api_key, sensor_data):
     except requests.exceptions.RequestException as e:
         print(f"Error sending data to ThingSpeak: {e}")
 
+# NEW: Function to send data to Firestore
+def send_to_firestore(sensor_data):
+    """Uploads sensor data to Firestore in real-time."""
+    if db is None:
+        print("Firestore not initialized. Skipping Firestore upload.")
+        return
+    
+    try:
+        # Parse numeric values safely
+        def parse_value(val):
+            if val == 'N/A':
+                return None
+            try:
+                return float(val)
+            except (ValueError, TypeError):
+                return val  # Return as string if not numeric
+        
+        # Prepare document data with all fields
+        doc_data = {
+            'timestamp': sensor_data.get('timestamp', datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
+            'crop_type': CROP_TYPE,
+            'air_temp_c': parse_value(sensor_data.get('air_temp_c')),
+            'humidity_percent': parse_value(sensor_data.get('humidity_percent')),
+            'water_soil_temp_c': parse_value(sensor_data.get('water_soil_temp_c')),
+            'air_pressure_hpa': parse_value(sensor_data.get('air_pressure_hpa')),
+            'air_pressure_status': sensor_data.get('air_pressure_status'),
+            'soil_moisture_raw': parse_value(sensor_data.get('soil_moisture_raw')),
+            'soil_moisture_status': sensor_data.get('soil_moisture_status'),
+            'light_level_raw': parse_value(sensor_data.get('light_level_raw')),
+            'light_level_status': sensor_data.get('light_level_status'),
+            'rain_level_raw': parse_value(sensor_data.get('rain_level_raw')),
+            'rain_level_status': sensor_data.get('rain_level_status'),
+            'co2_ppm': parse_value(sensor_data.get('co2_ppm')),
+            'nh3_ppm': parse_value(sensor_data.get('nh3_ppm')),
+            'voc_ppm': parse_value(sensor_data.get('voc_ppm')),
+            'nitrogen_mg_kg': parse_value(sensor_data.get('nitrogen_mg_kg')),
+            'nitrogen_status': sensor_data.get('nitrogen_status'),
+            'phosphorus_mg_kg': parse_value(sensor_data.get('phosphorus_mg_kg')),
+            'phosphorus_status': sensor_data.get('phosphorus_status'),
+            'potassium_mg_kg': parse_value(sensor_data.get('potassium_mg_kg')),
+            'potassium_status': sensor_data.get('potassium_status')
+        }
+        
+        # Generate document ID based on timestamp
+        timestamp_obj = datetime.strptime(doc_data['timestamp'], '%Y-%m-%d %H:%M:%S')
+        doc_id = f"{CROP_TYPE}_{timestamp_obj.strftime('%Y%m%d_%H%M%S')}"
+        
+        # Upload to Firestore
+        db.collection('sensorReadings').document(doc_id).set(doc_data)
+        print(f"✓ Data sent to Firestore. Document ID: {doc_id}")
+        
+    except Exception as e:
+        print(f"Error sending data to Firestore: {e}")
+
 # NEW: Function to log data to a local CSV file
 def log_to_csv(file_path, data_dict):
     """Appends a row of sensor data to the specified CSV file."""
@@ -509,17 +604,16 @@ def main():
         print(f"Rain Level: {data_copy.get('rain_level_raw', 'N/A')} (Status: {data_copy.get('rain_level_status', 'N/A')})")
         print(f"Nitrogen (N): {data_copy.get('nitrogen_mg_kg', 'N/A')} mg/kg (Status: {data_copy.get('nitrogen_status', 'N/A')})")
         print(f"Phosphorus (P): {data_copy.get('phosphorus_mg_kg', 'N/A')} mg/kg (Status: {data_copy.get('phosphorus_status', 'N/A')})")
-        print(f"Potassium (K): {data_copy.get('potassium_mg_kg', 'N/A')} mg/kg (Status: {data_copy.get('potassium_status', 'N/A')})")
-        print(f"CO2: {data_copy.get('co2_ppm', 'N/A')} ppm | NH3: {data_copy.get('nh3_ppm', 'N/A')} ppm | VOC: {data_copy.get('voc_ppm', 'N/A')} ppm")
-        print("-" * 50)
-        
-        # --- Send initial data to both destinations ---
-        send_to_thingspeak(THINGSPEAK_API_KEY, data_copy)
-        log_to_csv(CSV_LOG_FILE, data_copy)
-        
-        print("Initial data collection complete. Starting 5-minute interval loop...")
-        
-        # Continue with regular 5-minute intervals
+            print(f"Potassium (K): {data_copy.get('potassium_mg_kg', 'N/A')} mg/kg (Status: {data_copy.get('potassium_status', 'N/A')})")
+            print(f"CO2: {data_copy.get('co2_ppm', 'N/A')} ppm | NH3: {data_copy.get('nh3_ppm', 'N/A')} ppm | VOC: {data_copy.get('voc_ppm', 'N/A')} ppm")
+            print("-" * 50)
+            
+            # --- Send initial data to all three destinations ---
+            send_to_firestore(data_copy)  # NEW: Send to Firestore first
+            send_to_thingspeak(THINGSPEAK_API_KEY, data_copy)
+            log_to_csv(CSV_LOG_FILE, data_copy)
+            
+            print("Initial data collection complete. Starting 5-minute interval loop...")        # Continue with regular 5-minute intervals
         while True:
             time.sleep(300) # Wait 5 minutes (300 seconds) before next collection
             data['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -542,7 +636,8 @@ def main():
             print(f"CO2: {data_copy.get('co2_ppm', 'N/A')} ppm | NH3: {data_copy.get('nh3_ppm', 'N/A')} ppm | VOC: {data_copy.get('voc_ppm', 'N/A')} ppm")
             print("-" * 50)
             
-            # --- Send data to both destinations ---
+            # --- Send data to all three destinations ---
+            send_to_firestore(data_copy)  # NEW: Send to Firestore first
             send_to_thingspeak(THINGSPEAK_API_KEY, data_copy)
             log_to_csv(CSV_LOG_FILE, data_copy)
 
