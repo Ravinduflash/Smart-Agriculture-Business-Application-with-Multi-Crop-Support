@@ -261,6 +261,22 @@
   "mlModels.trainingHub.description": "මෙම කොටස මගින් නව පුහුණු කාර්යයන් ආරම්භ කිරීමට, ප්‍රගතිය නිරීක්ෂණය කිරීමට සහ ආකෘති අනුවාද කළමනාකරණය කිරීමට ඉඩ සැලසේ.",
   "mlModels.trainingHub.placeholder": "ආකෘති පුහුණු අතුරුමුහුණත ළඟදීම.",
 
+  "dashboard.mlModels.whatIsML": "යන්ත්‍ර ඉගෙනුම කුමක්ද?",
+  "dashboard.mlModels.thisModelWillHelp": "මෙම ආකෘතිය ඔබට උපකාර කරනු ඇත:",
+  "dashboard.mlModels.comingSoon": "ළඟදීම",
+  "dashboard.mlModels.developmentStatus": "දැනට සංවර්ධනය වෙමින්",
+  
+  "dashboard.mlModels.optimalPlanting.description": "යන්ත්‍ර ඉගෙනුම (ML) යනු ඔබේ ගොවිපලේ දත්ත වලින් ඉගෙන ගෙන අනාවැකි සහ නිර්දේශ ලබා දෙන ස්මාර්ට් සහායකයෙකු සිටීම වැනිය. එය වඩා හොඳ තීරණ ගැනීමට ඔබට උපකාර කිරීම සඳහා රටා විශ්ලේෂණය කරයි.",
+  "dashboard.mlModels.optimalPlanting.benefits": "• සෑම බෝගයක්ම සිටුවීමට හොඳම කාලය අනාවැකි කරයි\n• කාලගුණය, පාංශු තත්ත්වයන් සහ වෙළඳපල මිල ගණන් සලකා බලයි\n• ඔබේ අස්වනු සාර්ථකත්වය සහ ලාභය උපරිම කරයි\n• දුර්වල කාලය තෝරාගැනීමේ අවදානම් අඩු කරයි",
+  
+  "dashboard.mlModels.harvestingTime.description": "යන්ත්‍ර ඉගෙනුම ඔබේ ගොවිපලේ ඓතිහාසික දත්ත සහ වර්තමාන තත්ත්වයන් භාවිතා කර ඔබේ බෝග අස්වනු නෙළීමට සූදානම් වන කාලය පිළිබඳ ස්මාර්ට් අනාවැකි ලබා දෙයි.",
+  "dashboard.mlModels.harvestingTime.benefits": "• උපරිම ගුණත්වයක් සඳහා ප්‍රශස්ත අස්වනු නෙළීමේ දිනයන් අනාවැකි කරයි\n• ශ්‍රම සහ උපකරණ අවශ්‍යතා කල්තියාම සැලසුම් කරයි\n• පරිපූර්ණ කාලසටහනක් සමඟ හොඳම වෙළඳපල මිල ලබා ගන්න\n• කලින් හෝ ප්‍රමාද වී අස්වනු නෙළීමෙන් පාඩු වළක්වන්න",
+  
+  "dashboard.mlModels.cropRecommendation.title": "ස්මාර්ට් බෝග නිර්දේශය",
+  "dashboard.mlModels.cropRecommendation.subtitle": "ඔබේ ගොවිපල සඳහා AI-බලගන්වන ලද බෝග තේරීම",
+  "dashboard.mlModels.cropRecommendation.description": "මෙම AI ආකෘතිය ඔබේ නිශ්චිත ගොවිපල තත්ත්වයන් සඳහා වඩාත්ම ලාභදායක සහ සුදුසු බෝග නිර්දේශ කිරීම සඳහා ඔබේ පාංශු, දේශගුණ සහ වෙළඳපල දත්ත විශ්ලේෂණය කරයි.",
+  "dashboard.mlModels.cropRecommendation.benefits": "• ඔබේ ඉඩම සඳහා වඩාත්ම ලාභදායක බෝග තෝරන්න\n• ඔබේ පාංශු සහ දේශගුණ තත්ත්වයන්ට බෝග ගැලපෙන්න\n• වඩා හොඳ ආදායම් ස්ථාවරත්වය සඳහා ඔබේ ගොවිපල විවිධාංගීකරණය කරන්න\n• ස්මාර්ට් තේරීමක් සමඟ බෝග අසාර්ථක අවදානම් අඩු කරන්න",
+
   "notifications.pageTitle": "දැනුම්දීම්",
   "notifications.markAllRead": "සියල්ල කියවූ ලෙස සලකුණු කරන්න",
   "notifications.noNotifications": "නව දැනුම්දීම් නොමැත.",

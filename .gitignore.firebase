@@ -1,0 +1,39 @@
+# Firebase Credentials - NEVER COMMIT THESE FILES
+serviceAccountKey.json
+*-firebase-adminsdk-*.json
+firebase-credentials.json
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Python virtual environment
+sas_env/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Firebase cache
+.firebase/
+firebase-debug.log
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini

@@ -21,6 +21,10 @@ const MLModelsPage: React.FC = () => {
           <div className="flex flex-col items-center justify-center h-full text-textMedium">
             <IconChip className="w-16 h-16 text-primary mb-4" />
             <p className="text-lg">{t('mlModels.common.modelType.regression')}</p>
+            <div className="text-xs text-gray-600 bg-blue-50 p-2 rounded-lg mb-3 text-center">
+              <p className="font-medium mb-1">🤖 What is this?</p>
+              <p>This AI model analyzes your farm data (weather, soil, past harvests) to predict how much crop you'll harvest. Think of it as a smart calculator that learns from your farm's history!</p>
+            </div>
             <p>{t('mlModels.common.lastTrainedLabel')}: 2025-05-15</p>
             <button className="mt-4 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors text-sm">
               {t('mlModels.buttons.viewDetailsRetrain')}
@@ -36,6 +40,10 @@ const MLModelsPage: React.FC = () => {
           <div className="flex flex-col items-center justify-center h-full text-textMedium">
             <IconChip className="w-16 h-16 text-secondary mb-4" />
             <p className="text-lg">{t('mlModels.common.modelType.classification')}</p>
+            <div className="text-xs text-gray-600 bg-green-50 p-2 rounded-lg mb-3 text-center">
+              <p className="font-medium mb-1">🔍 What is this?</p>
+              <p>This AI model looks at photos of your plants and identifies diseases early - like having a plant doctor that can spot problems before they get serious!</p>
+            </div>
             <p>{t('mlModels.common.lastTrainedLabel')}: 2025-05-10</p>
             <button className="mt-4 bg-secondary text-white px-4 py-2 rounded-lg hover:bg-secondary-dark transition-colors text-sm">
               {t('mlModels.buttons.viewDetailsRetrain')}
@@ -51,6 +59,10 @@ const MLModelsPage: React.FC = () => {
           <div className="flex flex-col items-center justify-center h-full text-textMedium">
             <IconChip className="w-16 h-16 text-gray-400 mb-4" />
             <p className="text-lg">{t('mlModels.common.modelType.optimization')}</p>
+            <div className="text-xs text-gray-600 bg-yellow-50 p-2 rounded-lg mb-3 text-center">
+              <p className="font-medium mb-1">💡 What is this?</p>
+              <p>This AI model suggests the best crops to grow based on your soil, weather, and market prices - like having a farming advisor that knows your land!</p>
+            </div>
             <p>{t('mlModels.common.nextUpdateLabel')}: {t('mlModels.common.pending')}</p>
             <button className="mt-4 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm" disabled>
               {t('mlModels.buttons.configureComingSoon')}
@@ -67,6 +79,10 @@ const MLModelsPage: React.FC = () => {
           <div className="flex flex-col items-center justify-center h-full text-textMedium">
             <IconChip className="w-16 h-16 text-gray-400 mb-4" />
             <p className="text-lg">{t('mlModels.common.modelType.forecasting')}</p>
+            <div className="text-xs text-gray-600 bg-orange-50 p-2 rounded-lg mb-3 text-center">
+              <p className="font-medium mb-1">📅 What is this?</p>
+              <p>This AI model tells you the perfect time to plant your crops by analyzing weather patterns, soil conditions, and seasonal data - timing is everything in farming!</p>
+            </div>
             <p>{t('mlModels.common.nextUpdateLabel')}: {t('mlModels.common.pending')}</p>
             <button className="mt-4 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm" disabled>
               {t('mlModels.buttons.configureComingSoon')}
@@ -83,6 +99,10 @@ const MLModelsPage: React.FC = () => {
           <div className="flex flex-col items-center justify-center h-full text-textMedium">
             <IconChip className="w-16 h-16 text-gray-400 mb-4" />
             <p className="text-lg">{t('mlModels.common.modelType.predictive')}</p>
+            <div className="text-xs text-gray-600 bg-purple-50 p-2 rounded-lg mb-3 text-center">
+              <p className="font-medium mb-1">🌾 What is this?</p>
+              <p>This AI model predicts the best time to harvest your crops for maximum quality and profit by monitoring crop growth and market conditions!</p>
+            </div>
             <p>{t('mlModels.common.nextUpdateLabel')}: {t('mlModels.common.pending')}</p>
             <button className="mt-4 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm" disabled>
               {t('mlModels.buttons.configureComingSoon')}

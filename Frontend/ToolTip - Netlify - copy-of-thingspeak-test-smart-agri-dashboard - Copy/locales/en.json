@@ -262,6 +262,22 @@
   "mlModels.trainingHub.description": "This section will allow for initiating new training jobs, monitoring progress, and managing model versions.",
   "mlModels.trainingHub.placeholder": "Model training interface coming soon.",
 
+  "dashboard.mlModels.whatIsML": "What is Machine Learning?",
+  "dashboard.mlModels.thisModelWillHelp": "This Model Will Help You:",
+  "dashboard.mlModels.comingSoon": "Coming Soon",
+  "dashboard.mlModels.developmentStatus": "Currently in development",
+  
+  "dashboard.mlModels.optimalPlanting.description": "Machine Learning (ML) is like having a smart assistant that learns from your farm's data to make predictions and recommendations. It analyzes patterns to help you make better decisions.",
+  "dashboard.mlModels.optimalPlanting.benefits": "• Predict the best time to plant each crop\n• Consider weather, soil conditions, and market prices\n• Maximize your harvest success and profits\n• Reduce risks from poor timing decisions",
+  
+  "dashboard.mlModels.harvestingTime.description": "Machine Learning uses your farm's historical data and current conditions to make smart predictions about when your crops will be ready for harvest.",
+  "dashboard.mlModels.harvestingTime.benefits": "• Predict optimal harvest dates for maximum quality\n• Plan labor and equipment needs in advance\n• Get the best market prices with perfect timing\n• Avoid losses from early or late harvesting",
+  
+  "dashboard.mlModels.cropRecommendation.title": "Smart Crop Recommendation",
+  "dashboard.mlModels.cropRecommendation.subtitle": "AI-powered crop selection for your farm",
+  "dashboard.mlModels.cropRecommendation.description": "This AI model analyzes your soil, climate, and market data to recommend the most profitable and suitable crops for your specific farm conditions.",
+  "dashboard.mlModels.cropRecommendation.benefits": "• Choose the most profitable crops for your land\n• Match crops to your soil and climate conditions\n• Diversify your farm for better income stability\n• Reduce crop failure risks with smart selection",
+
   "notifications.pageTitle": "Notifications",
   "notifications.markAllRead": "Mark all as read",
   "notifications.noNotifications": "No new notifications.",

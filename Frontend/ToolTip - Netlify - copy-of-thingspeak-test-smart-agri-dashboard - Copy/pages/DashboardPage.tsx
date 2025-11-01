@@ -321,15 +321,28 @@ const DashboardPage: React.FC = () => {
             <IconChevronDown className={`w-5 h-5 transform transition-transform duration-200 ${isUpcomingModelsOpen ? 'rotate-180' : ''}`} />
           </button>
           {isUpcomingModelsOpen && (
-            <div id="upcoming-models-content" className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            <div id="upcoming-models-content" className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               <ChartCard 
                   title={t('mlModels.optimalPlanting.title')} 
                   subtitle={t('dashboard.optimalPlanting.subtitle')}
                   className="min-h-[250px]"
               >
-                <div className="flex flex-col items-center justify-center h-full text-textMedium p-4">
-                  <IconChip className="w-16 h-16 text-gray-400 mb-4" />
-                  <p className="text-center text-sm">{t('dashboard.optimalPlanting.placeholder')}</p>
+                <div className="flex flex-col justify-center h-full p-4 space-y-4">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-blue-800 mb-2">🤖 {t('dashboard.mlModels.whatIsML')}</h4>
+                    <p className="text-xs text-blue-700 leading-relaxed mb-3">
+                      {t('dashboard.mlModels.optimalPlanting.description')}
+                    </p>
+                    <h5 className="text-xs font-semibold text-blue-800 mb-1">{t('dashboard.mlModels.thisModelWillHelp')}</h5>
+                    <p className="text-xs text-blue-700 leading-relaxed whitespace-pre-line">
+                      {t('dashboard.mlModels.optimalPlanting.benefits')}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
+                    <IconChip className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                    <h5 className="text-xs font-medium text-gray-700 mb-1">🚧 {t('dashboard.mlModels.comingSoon')}</h5>
+                    <p className="text-xs text-gray-600">{t('dashboard.mlModels.developmentStatus')}</p>
+                  </div>
                 </div>
               </ChartCard>
 
@@ -338,9 +351,46 @@ const DashboardPage: React.FC = () => {
                   subtitle={t('dashboard.harvestingTime.subtitle')}
                   className="min-h-[250px]"
               >
-                <div className="flex flex-col items-center justify-center h-full text-textMedium p-4">
-                  <IconChip className="w-16 h-16 text-gray-400 mb-4" />
-                  <p className="text-center text-sm">{t('dashboard.harvestingTime.placeholder')}</p>
+                <div className="flex flex-col justify-center h-full p-4 space-y-4">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-green-800 mb-2">🤖 {t('dashboard.mlModels.whatIsML')}</h4>
+                    <p className="text-xs text-green-700 leading-relaxed mb-3">
+                      {t('dashboard.mlModels.harvestingTime.description')}
+                    </p>
+                    <h5 className="text-xs font-semibold text-green-800 mb-1">{t('dashboard.mlModels.thisModelWillHelp')}</h5>
+                    <p className="text-xs text-green-700 leading-relaxed whitespace-pre-line">
+                      {t('dashboard.mlModels.harvestingTime.benefits')}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
+                    <IconChip className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                    <h5 className="text-xs font-medium text-gray-700 mb-1">🚧 {t('dashboard.mlModels.comingSoon')}</h5>
+                    <p className="text-xs text-gray-600">{t('dashboard.mlModels.developmentStatus')}</p>
+                  </div>
+                </div>
+              </ChartCard>
+
+              <ChartCard 
+                  title={t('dashboard.mlModels.cropRecommendation.title')} 
+                  subtitle={t('dashboard.mlModels.cropRecommendation.subtitle')}
+                  className="min-h-[250px]"
+              >
+                <div className="flex flex-col justify-center h-full p-4 space-y-4">
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-purple-800 mb-2">🤖 {t('dashboard.mlModels.whatIsML')}</h4>
+                    <p className="text-xs text-purple-700 leading-relaxed mb-3">
+                      {t('dashboard.mlModels.cropRecommendation.description')}
+                    </p>
+                    <h5 className="text-xs font-semibold text-purple-800 mb-1">{t('dashboard.mlModels.thisModelWillHelp')}</h5>
+                    <p className="text-xs text-purple-700 leading-relaxed whitespace-pre-line">
+                      {t('dashboard.mlModels.cropRecommendation.benefits')}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
+                    <IconChip className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                    <h5 className="text-xs font-medium text-gray-700 mb-1">🚧 {t('dashboard.mlModels.comingSoon')}</h5>
+                    <p className="text-xs text-gray-600">{t('dashboard.mlModels.developmentStatus')}</p>
+                  </div>
                 </div>
               </ChartCard>
             </div>
