@@ -10,6 +10,7 @@ import Spinner from '../components/Spinner';
 import GeminiResponseDisplay from '../components/GeminiResponseDisplay';
 import { LanguageContext } from '../contexts/LanguageContext';
 import { useTooltipContent } from '../hooks/useTooltipContent';
+import { firestoreService } from '../src/services/firestoreService';
 
 export default function AnalyticsPage(): JSX.Element {
   const { currentLanguage, t } = useContext(LanguageContext);
@@ -20,15 +21,65 @@ export default function AnalyticsPage(): JSX.Element {
   const [pestIncidence, setPestIncidence] = useState<MonthlyReportData[]>([]);
   const [insights, setInsights] = useState<string | null>(null);
   const [isLoadingInsights, setIsLoadingInsights] = useState(false);
+  const [firestoreTotalYield, setFirestoreTotalYield] = useState<number | null>(null);
 
   useEffect(() => {
-    setMetrics(getMockAnalyticsMetrics());
-    const yieldData = getMockMonthlyYieldReport();
-    const moistureData = getMockSoilMoistureTrends();
-    const pestData = getMockPestIncidenceReport();
-    setMonthlyYield(yieldData);
-    setSoilMoisture(moistureData);
-    setPestIncidence(pestData);
+    const loadData = async () => {
+      // Load mock data first
+      const mockMetrics = getMockAnalyticsMetrics();
+      setMetrics(mockMetrics);
+
+      // Fetch total yield from Firestore harvest_cycles
+      try {
+        const { totalYieldKg } = await firestoreService.getTotalYieldFromHarvestCycles();
+        setFirestoreTotalYield(totalYieldKg);
+        
+        // Update the first metric (Total Yield YTD) with Firestore data
+        const updatedMetrics = [...mockMetrics];
+        updatedMetrics[0] = {
+          ...updatedMetrics[0],
+          value: totalYieldKg.toFixed(0),
+          unit: 'kg',
+          status: totalYieldKg > 0 ? 'On Target' : 'No Data'
+        };
+        setMetrics(updatedMetrics);
+
+        // Fetch harvest cycles yield data for chart
+        const cyclesYieldData = await firestoreService.getHarvestCyclesYieldData();
+        if (cyclesYieldData.length > 0) {
+          setMonthlyYield(cyclesYieldData);
+        } else {
+          // Fallback to mock data if no Firestore data
+          setMonthlyYield(getMockMonthlyYieldReport());
+        }
+
+        // Fetch soil moisture trends data by cycle
+        const moistureTrendsData = await firestoreService.getSoilMoistureTrendsByCycle();
+        if (moistureTrendsData.length > 0) {
+          setSoilMoisture(moistureTrendsData);
+        } else {
+          // Fallback to mock data if no Firestore data
+          setSoilMoisture(getMockSoilMoistureTrends());
+        }
+
+        // Fetch pest loss data from harvest cycles
+        const pestLossData = await firestoreService.getPestLossDataByCycle();
+        if (pestLossData.length > 0) {
+          setPestIncidence(pestLossData);
+        } else {
+          // Fallback to mock data if no Firestore data
+          setPestIncidence(getMockPestIncidenceReport());
+        }
+      } catch (error) {
+        console.error('Error fetching Firestore data:', error);
+        // Fallback to mock data on error
+        setMonthlyYield(getMockMonthlyYieldReport());
+        setSoilMoisture(getMockSoilMoistureTrends());
+        setPestIncidence(getMockPestIncidenceReport());
+      }
+    };
+
+    loadData();
   }, []);
 
   const handleGenerateInsights = async () => {
@@ -52,7 +103,7 @@ export default function AnalyticsPage(): JSX.Element {
             key={metric.key}
             title={t(metric.key)}
             value={metric.value}
-            unit={metric.unit ? (metric.unit === 'tons' ? t('analytics.units.tons') : metric.unit) : undefined}
+            unit={metric.unit ? (metric.unit === 'tons' ? t('analytics.units.tons') : metric.unit === 'kg' ? 'kg' : metric.unit) : undefined}
             status={metric.status ? t(`analytics.status.${metric.status.toLowerCase().replace(/ /g, '')}`) : undefined}
             icon={metric.icon}
             tooltipContent={getAnalyticsTooltip('metrics_cards')}
@@ -86,15 +137,15 @@ export default function AnalyticsPage(): JSX.Element {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <ChartCard 
-          title={t('analytics.monthlyYield.title')} 
-          subtitle={t('analytics.monthlyYield.subtitle')}
+          title={monthlyYield.length > 0 && monthlyYield[0].name.includes('Cycle') ? 'Harvest Cycles Yield Report' : t('analytics.monthlyYield.title')}
+          subtitle={monthlyYield.length > 0 && monthlyYield[0].name.includes('Cycle') ? 'Yield from each harvest cycle' : t('analytics.monthlyYield.subtitle')}
           tooltipContent={getAnalyticsTooltip('monthly_yield')}
         >
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={monthlyYield} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
               <XAxis dataKey="name" tick={{ fill: '#6B7280', fontSize: 12 }} />
-              <YAxis tick={{ fill: '#6B7280', fontSize: 12 }} unit={` ${t('analytics.units.tons')}`} />
+              <YAxis tick={{ fill: '#6B7280', fontSize: 12 }} unit={monthlyYield.length > 0 && monthlyYield[0].name.includes('Cycle') ? ' kg' : ` ${t('analytics.units.tons')}`} />
               <RechartsTooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #ccc', borderRadius: '4px' }} />
               <Legend wrapperStyle={{ fontSize: '12px' }} />
               <Bar dataKey="value" name={t('analytics.monthlyYield.legend')} fill="#10B981" radius={[4, 4, 0, 0]} />
@@ -103,25 +154,25 @@ export default function AnalyticsPage(): JSX.Element {
         </ChartCard>
 
         <ChartCard 
-          title={t('analytics.soilMoisture.title')} 
-          subtitle={t('analytics.soilMoisture.subtitle')}
+          title={soilMoisture.length > 0 && soilMoisture[0].name.includes('Aug') ? 'Soil Moisture Trends - Cycle 2 (Daily)' : t('analytics.soilMoisture.title')}
+          subtitle={soilMoisture.length > 0 && soilMoisture[0].name.includes('Aug') ? 'Daily soil moisture raw values for Cycle 2' : t('analytics.soilMoisture.subtitle')}
           tooltipContent={getAnalyticsTooltip('soil_moisture_trends')}
         >
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={soilMoisture} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
               <XAxis dataKey="name" tick={{ fill: '#6B7280', fontSize: 12 }} />
-              <YAxis tick={{ fill: '#6B7280', fontSize: 12 }} unit="%" />
+              <YAxis tick={{ fill: '#6B7280', fontSize: 12 }} unit={soilMoisture.length > 0 && soilMoisture[0].name.includes('Aug') ? '' : '%'} />
               <RechartsTooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #ccc', borderRadius: '4px' }} />
               <Legend wrapperStyle={{ fontSize: '12px' }} />
-              <Line type="monotone" dataKey="value" name={t('analytics.soilMoisture.legend')} stroke="#3B82F6" strokeWidth={2} />
+              <Line type="monotone" dataKey="value" name={soilMoisture.length > 0 && soilMoisture[0].name.includes('Aug') ? 'Raw Value' : t('analytics.soilMoisture.legend')} stroke="#3B82F6" strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
         </ChartCard>
         
         <ChartCard 
-          title={t('analytics.pestIncidence.title')} 
-          subtitle={t('analytics.pestIncidence.subtitle')} 
+          title={pestIncidence.length > 0 && pestIncidence[0].name.includes('Cycle') ? 'Pest Loss Report by Harvest Cycle' : t('analytics.pestIncidence.title')}
+          subtitle={pestIncidence.length > 0 && pestIncidence[0].name.includes('Cycle') ? 'Percentage of yield lost to pests in each cycle' : t('analytics.pestIncidence.subtitle')}
           className="lg:col-span-2"
           tooltipContent={getAnalyticsTooltip('pest_incidence')}
         >
@@ -132,7 +183,7 @@ export default function AnalyticsPage(): JSX.Element {
                     <YAxis tick={{ fill: '#6B7280', fontSize: 12 }} unit="%" />
                     <RechartsTooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #ccc', borderRadius: '4px' }} />
                     <Legend wrapperStyle={{ fontSize: '12px' }} />
-                    <Line type="monotone" dataKey="value" name={t('analytics.pestIncidence.legend')} stroke="#EF4444" strokeWidth={2} />
+                    <Line type="monotone" dataKey="value" name={pestIncidence.length > 0 && pestIncidence[0].name.includes('Cycle') ? 'Pest Loss %' : t('analytics.pestIncidence.legend')} stroke="#EF4444" strokeWidth={2} />
                 </LineChart>
             </ResponsiveContainer>
         </ChartCard>

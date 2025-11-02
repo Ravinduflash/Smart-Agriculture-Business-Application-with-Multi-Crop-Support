@@ -710,6 +710,234 @@ class FirestoreService {
     }
   }
 
+  /**
+   * Get total yield from all harvest cycles in kg
+   * Sums up final_actual_yield_g_total from all harvest cycles and converts to kg
+   */
+  async getTotalYieldFromHarvestCycles(): Promise<{ totalYieldKg: number; cycleCount: number }> {
+    try {
+      const querySnapshot = await getDocs(collection(db, COLLECTIONS.HARVEST_CYCLES));
+      
+      let totalYieldGrams = 0;
+      let cycleCount = querySnapshot.docs.length;
+      
+      querySnapshot.docs.forEach(doc => {
+        const data = doc.data();
+        // Get final_actual_yield_g_total field
+        const yieldInGrams = data.final_actual_yield_g_total || 0;
+        totalYieldGrams += Number(yieldInGrams);
+      });
+
+      // Convert grams to kg
+      const totalYieldKg = totalYieldGrams / 1000;
+
+      console.log(`✅ Total yield calculated: ${totalYieldGrams}g (${totalYieldKg}kg) from ${cycleCount} cycles`);
+      
+      return {
+        totalYieldKg: totalYieldKg,
+        cycleCount
+      };
+    } catch (error) {
+      console.error('❌ Error calculating total yield:', error);
+      return {
+        totalYieldKg: 0,
+        cycleCount: 0
+      };
+    }
+  }
+
+  /**
+   * Get harvest cycles yield data for chart display
+   * Returns array with cycle names and their final_actual_yield_g_total converted to kg
+   */
+  async getHarvestCyclesYieldData(): Promise<{ name: string; value: number }[]> {
+    try {
+      const querySnapshot = await getDocs(
+        query(collection(db, COLLECTIONS.HARVEST_CYCLES), orderBy('created_at', 'asc'))
+      );
+      
+      const yieldData = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        const cycleId = doc.id; // e.g., "cycle_001", "cycle_002"
+        const yieldInGrams = data.final_actual_yield_g_total || 0;
+        // Convert grams to kg for chart display
+        const yieldInKg = Number(yieldInGrams) / 1000;
+        
+        return {
+          name: cycleId.replace('cycle_', 'Cycle '), // "Cycle 001"
+          value: parseFloat(yieldInKg.toFixed(2)) // Round to 2 decimal places
+        };
+      });
+
+      console.log(`✅ Loaded ${yieldData.length} harvest cycles for chart`);
+      return yieldData;
+    } catch (error) {
+      console.error('❌ Error loading harvest cycles yield data:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get daily soil moisture readings for a specific harvest cycle
+   * Returns daily soil_moisture_raw values (not percentage) for Cycle 2
+   */
+  async getSoilMoistureTrendsByCycle(): Promise<{ name: string; value: number }[]> {
+    try {
+      // Get only cycle_002
+      const cycleDoc = await getDoc(doc(db, COLLECTIONS.HARVEST_CYCLES, 'cycle_002'));
+      
+      if (!cycleDoc.exists()) {
+        console.warn('⚠️ Cycle 002 not found');
+        return [];
+      }
+
+      const cycleData = cycleDoc.data();
+      const plantingDate = cycleData.planting_date;
+      const harvestDate = cycleData.final_harvest_date;
+
+      console.log(`🔍 Cycle 002:`, {
+        planting_date: plantingDate,
+        final_harvest_date: harvestDate
+      });
+
+      if (!plantingDate || !harvestDate) {
+        console.warn(`⚠️ Cycle 002 missing date information`);
+        return [];
+      }
+
+      try {
+        // Convert ISO string dates to Firestore Timestamps for comparison
+        const plantingTimestamp = Timestamp.fromDate(new Date(plantingDate));
+        const harvestTimestamp = Timestamp.fromDate(new Date(harvestDate));
+
+        console.log(`📅 Date range for Cycle 002:`, {
+          from: plantingTimestamp.toDate().toISOString(),
+          to: harvestTimestamp.toDate().toISOString()
+        });
+
+        // Query all sensor readings within the cycle date range
+        const sensorsQuery = query(
+          collection(db, COLLECTIONS.SENSOR_READINGS),
+          where('timestamp', '>=', plantingTimestamp),
+          where('timestamp', '<=', harvestTimestamp),
+          orderBy('timestamp', 'asc')
+        );
+
+        const sensorsSnapshot = await getDocs(sensorsQuery);
+        console.log(`📊 Cycle 002: Found ${sensorsSnapshot.docs.length} sensor readings`);
+        
+        if (sensorsSnapshot.docs.length === 0) {
+          console.warn(`⚠️ No sensor readings found for Cycle 002`);
+          return [];
+        }
+
+        // Group readings by date and calculate daily average
+        const dailyData: { [date: string]: { sum: number; count: number } } = {};
+
+        sensorsSnapshot.docs.forEach(doc => {
+          const data = doc.data();
+          const timestamp = data.timestamp;
+          const moistureRaw = data.soil_moisture_raw;
+          
+          if (moistureRaw !== null && moistureRaw !== undefined && !isNaN(moistureRaw)) {
+            // Extract date (YYYY-MM-DD) from timestamp
+            let dateKey: string;
+            if (timestamp?.toDate) {
+              // Firestore Timestamp
+              dateKey = timestamp.toDate().toISOString().split('T')[0];
+            } else if (typeof timestamp === 'string') {
+              // String timestamp
+              dateKey = timestamp.split(' ')[0] || timestamp.split('T')[0];
+            } else {
+              return; // Skip invalid timestamps
+            }
+
+            if (!dailyData[dateKey]) {
+              dailyData[dateKey] = { sum: 0, count: 0 };
+            }
+            
+            dailyData[dateKey].sum += Number(moistureRaw);
+            dailyData[dateKey].count += 1;
+          }
+        });
+
+        // Convert to array and calculate daily averages (raw values, not percentage)
+        const moistureData = Object.keys(dailyData)
+          .sort() // Sort by date
+          .map(dateKey => {
+            const dayData = dailyData[dateKey];
+            const avgMoistureRaw = dayData.sum / dayData.count;
+            
+            // Format date for display (e.g., "Aug 07", "Aug 08")
+            const date = new Date(dateKey);
+            const monthShort = date.toLocaleDateString('en-US', { month: 'short' });
+            const day = date.getDate();
+            
+            return {
+              name: `${monthShort} ${day}`,
+              value: parseFloat(avgMoistureRaw.toFixed(1)) // Keep raw value
+            };
+          });
+
+        console.log(`✅ Loaded ${moistureData.length} days of soil moisture data for Cycle 002`);
+        console.log(`📊 Sample data:`, moistureData.slice(0, 3));
+        
+        return moistureData;
+      } catch (queryError) {
+        console.error(`❌ Error querying sensors for cycle_002:`, queryError);
+        return [];
+      }
+    } catch (error) {
+      console.error('❌ Error loading soil moisture trends:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get pest loss data from harvest cycles
+   * Returns final_pest_loss_g for each cycle, converted to percentage of total yield
+   */
+  async getPestLossDataByCycle(): Promise<{ name: string; value: number }[]> {
+    try {
+      const cyclesSnapshot = await getDocs(
+        query(collection(db, COLLECTIONS.HARVEST_CYCLES), orderBy('created_at', 'asc'))
+      );
+
+      const pestLossData: { name: string; value: number }[] = [];
+
+      console.log(`📊 Processing ${cyclesSnapshot.docs.length} harvest cycles for pest loss`);
+
+      cyclesSnapshot.docs.forEach(doc => {
+        const cycleData = doc.data();
+        const cycleId = doc.id;
+        const pestLossG = cycleData.final_pest_loss_g || 0;
+        const totalYieldG = cycleData.final_actual_yield_g_total || 0;
+
+        // Calculate pest loss as percentage of potential yield
+        // Formula: (pest_loss / (actual_yield + pest_loss)) * 100
+        let pestLossPercent = 0;
+        const potentialYield = totalYieldG + pestLossG;
+        
+        if (potentialYield > 0) {
+          pestLossPercent = (pestLossG / potentialYield) * 100;
+        }
+
+        pestLossData.push({
+          name: cycleId.replace('cycle_', 'Cycle '),
+          value: parseFloat(pestLossPercent.toFixed(1))
+        });
+
+        console.log(`📊 ${cycleId}: pest_loss=${pestLossG}g, yield=${totalYieldG}g, loss_percent=${pestLossPercent.toFixed(1)}%`);
+      });
+
+      console.log(`✅ Loaded pest loss data for ${pestLossData.length} cycles`);
+      return pestLossData;
+    } catch (error) {
+      console.error('❌ Error loading pest loss data:', error);
+      return [];
+    }
+  }
+
   // ==================== DAILY FORECASTS ====================
   
   async addDailyForecast(forecastData: Omit<DailyForecast, 'id' | 'created_at'>): Promise<boolean> {
