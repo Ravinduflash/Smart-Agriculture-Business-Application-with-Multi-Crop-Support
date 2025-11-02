@@ -76,6 +76,13 @@ const IoTSensorsPage: React.FC = () => {
   const loadSensorData = useCallback(async (isInitialLoad = false) => {
     if (isInitialLoad) setIsLoading(true);
     
+    // Wait for translation function to be ready
+    if (!t || typeof t !== 'function') {
+      console.warn('Translation function not ready yet');
+      if (isInitialLoad) setIsLoading(false);
+      return;
+    }
+    
     try {
       const initialMockSensorsBase = getMockSensors();
       const placeholderSensors = initialMockSensorsBase.map(s => ({
@@ -151,6 +158,12 @@ const IoTSensorsPage: React.FC = () => {
   }, [t, sensors.length]); // Added sensors.length to deps for initial placeholder logic
 
   useEffect(() => {
+    // Only start loading when translation function is ready
+    if (!t || typeof t !== 'function') {
+      console.warn('Waiting for translation function...');
+      return;
+    }
+    
     loadSensorData(true); 
     
     const intervalId = setInterval(() => {
@@ -158,7 +171,7 @@ const IoTSensorsPage: React.FC = () => {
     }, POLLING_INTERVAL);
 
     return () => clearInterval(intervalId);
-  }, [loadSensorData]); 
+  }, [loadSensorData, t]); // Added t to dependencies 
 
   useEffect(() => {
     if (!isLoading) {
@@ -206,7 +219,12 @@ const IoTSensorsPage: React.FC = () => {
   };
   
   const getTranslatedStatus = (statusKey: Sensor['status']): string => {
-    let subKey = statusKey.toString(); 
+    // Safety check for undefined or null
+    if (statusKey === undefined || statusKey === null) {
+      return t('common.na');
+    }
+    
+    let subKey = String(statusKey); 
 
     if (Object.values(SoilMoistureStatusType).includes(statusKey as SoilMoistureStatusType) ||
         Object.values(TemperatureStatusType).includes(statusKey as TemperatureStatusType) ||
@@ -218,13 +236,13 @@ const IoTSensorsPage: React.FC = () => {
         Object.values(GasLevelsStatusType).includes(statusKey as GasLevelsStatusType) ||
         Object.values(NPKStatusType).includes(statusKey as NPKStatusType) 
       ) { 
-      subKey = statusKey.toString();
+      subKey = String(statusKey);
     } else if (typeof statusKey === 'string' && generalSensorStatusValues.includes(statusKey as GeneralSensorStatus)) {
       subKey = statusKey.toLowerCase();
     }
     
     const key = `iotSensors.status.${subKey}`;
-    return t(key, { fallback: statusKey.toString() });
+    return t(key, { fallback: String(statusKey) });
   };
 
   const getStatusTextColorClass = (statusKey: Sensor['status']): string => {

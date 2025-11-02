@@ -9,7 +9,8 @@ import {
   orderBy, 
   limit, 
   onSnapshot, 
-  updateDoc, 
+  updateDoc,
+  deleteDoc,
   Timestamp,
   DocumentData
 } from 'firebase/firestore';
@@ -35,11 +36,13 @@ export interface CropProfile {
     waterNeeds: string;
     optimalPh: string;
     sunlight: string;
-    temperature: string;
-    additionalTips: string;
+    temperature?: string;
+    soilType?: string;
+    growthDuration?: string;
+    additionalTips?: string;
   };
-  createdAt: Timestamp;
-  lastUpdated: Timestamp;
+  createdAt?: Timestamp;
+  lastUpdated?: Timestamp;
 }
 
 export interface SensorReading {
@@ -156,6 +159,11 @@ class FirestoreService {
     }
   }
 
+  // Alias method for consistency with other CRUD operations
+  async addCropProfile(cropProfile: Omit<CropProfile, 'createdAt' | 'lastUpdated'>): Promise<boolean> {
+    return this.saveCropProfile(cropProfile);
+  }
+
   async updateCropProfile(cropId: string, updates: Partial<CropProfile>): Promise<boolean> {
     try {
       const docRef = doc(db, COLLECTIONS.CROP_PROFILES, cropId);
@@ -166,6 +174,18 @@ class FirestoreService {
       return true;
     } catch (error) {
       console.error('Error updating crop profile:', error);
+      return false;
+    }
+  }
+
+  async deleteCropProfile(cropId: string): Promise<boolean> {
+    try {
+      const docRef = doc(db, COLLECTIONS.CROP_PROFILES, cropId);
+      await deleteDoc(docRef);
+      console.log('✅ Crop profile deleted from Firestore:', cropId);
+      return true;
+    } catch (error) {
+      console.error('❌ Error deleting crop profile:', error);
       return false;
     }
   }

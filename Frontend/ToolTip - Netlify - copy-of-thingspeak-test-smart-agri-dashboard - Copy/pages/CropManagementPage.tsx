@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Crop, OptimalConditions, SensorType, CropRecommendation, Sensor } from '../types';
 import { getMockCrops, getMockSensors } from '../services/mockDataService';
-import { IconPlus, IconSun, IconWaterDrop, IconLeaf, DEFAULT_IMAGE_URL } from '../constants';
+import { IconPlus, IconSun, IconWaterDrop, IconLeaf, IconTrash, DEFAULT_IMAGE_URL } from '../constants';
 import Modal from '../components/Modal';
 import { getCropOptimalConditions, getAICropRecommendations, generateCropImage } from '../services/geminiService';
 import Spinner from '../components/Spinner';
@@ -11,8 +11,16 @@ import { LanguageContext } from '../contexts/LanguageContext';
 import { fetchThingSpeakData, parseFloatSafe, ThingSpeakFeed } from '../services/thingSpeakService'; // Added Sensor type
 import { firestoreService, CropProfile } from '../src/services/firestoreService';
 
-const CropCard: React.FC<{ crop: Crop; t: (key: string) => string }> = ({ crop, t }) => (
-  <div className="bg-card rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+const CropCard: React.FC<{ crop: Crop; t: (key: string) => string; onDelete: (cropId: string) => void }> = ({ crop, t, onDelete }) => (
+  <div className="bg-card rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 relative">
+    <button
+      onClick={() => onDelete(crop.id)}
+      className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg transition-colors z-10"
+      aria-label={t('cropManagement.card.delete')}
+      title={t('cropManagement.card.delete')}
+    >
+      <IconTrash className="w-4 h-4" />
+    </button>
     <img src={crop.imageUrl || DEFAULT_IMAGE_URL} alt={crop.name} className="w-full h-40 object-cover" 
       onError={(e) => (e.currentTarget.src = DEFAULT_IMAGE_URL)}
     />
@@ -67,6 +75,10 @@ function CropManagementPage(): JSX.Element {
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   const [recommendationError, setRecommendationError] = useState<string | null>(null);
 
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [cropToDelete, setCropToDelete] = useState<Crop | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   useEffect(() => {
     // Load crops from Firestore instead of mock data
     const loadCropsFromFirestore = async () => {
@@ -120,11 +132,13 @@ function CropManagementPage(): JSX.Element {
     loadLiveData();
   }, []);
 
-  const handleAddCrop = () => {
+  const handleAddCrop = async () => {
     if (!newCropName.trim()) return; 
     
+    const cropId = `crop_${Date.now()}`;
+    
     const newCropEntry: Crop = {
-      id: String(crops.length + 1 + Date.now()),
+      id: cropId,
       name: newCropName,
       imageUrl: generatedImageUrl || DEFAULT_IMAGE_URL, 
       waterNeeds: typeof suggestedConditions === 'object' && suggestedConditions?.waterNeeds ? suggestedConditions.waterNeeds : t('common.na'),
@@ -134,7 +148,43 @@ function CropManagementPage(): JSX.Element {
                (typeof suggestedConditions === 'string' ? suggestedConditions : undefined),
       lastUpdated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
-    setCrops(prevCrops => [newCropEntry, ...prevCrops]);
+    
+    // Save to Firestore
+    try {
+      console.log('💾 Saving crop profile to Firestore:', newCropEntry.name);
+      
+      const cropProfile: Omit<CropProfile, 'id'> = {
+        cropId: cropId,
+        name: newCropEntry.name,
+        imageUrl: newCropEntry.imageUrl || DEFAULT_IMAGE_URL,
+        description: newCropEntry.details || '',
+        optimalConditions: {
+          waterNeeds: newCropEntry.waterNeeds,
+          optimalPh: newCropEntry.optimalPh,
+          sunlight: newCropEntry.sunlight,
+          temperature: '', // Not captured in current form
+          soilType: '', // Not captured in current form
+          growthDuration: '' // Not captured in current form
+        },
+        // Firestore will add createdAt and lastUpdated timestamps automatically
+      };
+      
+      const success = await firestoreService.addCropProfile(cropProfile);
+      
+      if (success) {
+        console.log('✅ Crop profile saved successfully to Firestore');
+        // Add to local state to show immediately
+        setCrops(prevCrops => [newCropEntry, ...prevCrops]);
+      } else {
+        console.error('❌ Failed to save crop profile to Firestore');
+        alert(t('cropManagement.error.saveFailed') || 'Failed to save crop profile. Please try again.');
+        return;
+      }
+    } catch (error) {
+      console.error('❌ Error saving crop profile:', error);
+      alert(t('cropManagement.error.saveFailed') || 'Failed to save crop profile. Please try again.');
+      return;
+    }
     
     resetModalState();
     setIsModalOpen(false);
@@ -252,6 +302,46 @@ function CropManagementPage(): JSX.Element {
     setIsRecommendationModalOpen(true);
   };
 
+  const handleDeleteClick = (cropId: string) => {
+    const crop = crops.find(c => c.id === cropId);
+    if (crop) {
+      setCropToDelete(crop);
+      setIsDeleteModalOpen(true);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!cropToDelete) return;
+
+    setIsDeleting(true);
+    console.log('🗑️ Deleting crop profile from Firestore:', cropToDelete.name);
+
+    try {
+      const success = await firestoreService.deleteCropProfile(cropToDelete.id);
+      
+      if (success) {
+        console.log('✅ Crop profile deleted successfully from Firestore');
+        // Remove from local state
+        setCrops(prevCrops => prevCrops.filter(c => c.id !== cropToDelete.id));
+        setIsDeleteModalOpen(false);
+        setCropToDelete(null);
+      } else {
+        console.error('❌ Failed to delete crop profile from Firestore');
+        alert(t('cropManagement.error.deleteFailed') || 'Failed to delete crop profile. Please try again.');
+      }
+    } catch (error) {
+      console.error('❌ Error deleting crop profile:', error);
+      alert(t('cropManagement.error.deleteFailed') || 'Failed to delete crop profile. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setCropToDelete(null);
+  };
+
 
   return (
     <div className="space-y-6">
@@ -271,7 +361,7 @@ function CropManagementPage(): JSX.Element {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {crops.map((crop) => (
-            <CropCard key={crop.id} crop={crop} t={t} />
+            <CropCard key={crop.id} crop={crop} t={t} onDelete={handleDeleteClick} />
           ))}
         </div>
       )}
@@ -444,6 +534,60 @@ function CropManagementPage(): JSX.Element {
         {recommendations && recommendations.length === 0 && !recommendationError && (
             <p className="text-textMedium text-center py-4">{t('cropManagement.recommendation.modal.noResults')}</p>
         )}
+      </Modal>
+
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={handleCancelDelete}
+        title={t('cropManagement.delete.modal.title')}
+      >
+        <div className="space-y-4">
+          <p className="text-gray-700">
+            {t('cropManagement.delete.modal.message')} <strong className="text-red-600">{cropToDelete?.name}</strong>?
+          </p>
+          <p className="text-sm text-gray-500">
+            {t('cropManagement.delete.modal.warning')}
+          </p>
+          {cropToDelete && (
+            <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
+              <img 
+                src={cropToDelete.imageUrl || DEFAULT_IMAGE_URL} 
+                alt={cropToDelete.name} 
+                className="w-full h-32 object-cover rounded-md mb-2"
+                onError={(e) => (e.currentTarget.src = DEFAULT_IMAGE_URL)}
+              />
+              <h4 className="font-semibold text-gray-800">{cropToDelete.name}</h4>
+              <p className="text-sm text-gray-600">{cropToDelete.details || t('common.na')}</p>
+            </div>
+          )}
+        </div>
+        <div className="mt-6 flex justify-end space-x-3">
+          <button 
+            type="button" 
+            onClick={handleCancelDelete}
+            disabled={isDeleting}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50"
+          >
+            {t('cropManagement.delete.modal.cancel')}
+          </button>
+          <button
+            onClick={handleConfirmDelete}
+            disabled={isDeleting}
+            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md shadow transition-colors disabled:opacity-50 flex items-center"
+          >
+            {isDeleting ? (
+              <>
+                <Spinner size="sm" color="text-white" />
+                <span className="ml-2">{t('cropManagement.delete.modal.deleting')}</span>
+              </>
+            ) : (
+              <>
+                <IconTrash className="w-4 h-4 mr-2" />
+                {t('cropManagement.delete.modal.confirm')}
+              </>
+            )}
+          </button>
+        </div>
       </Modal>
 
     </div>
