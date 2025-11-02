@@ -23,7 +23,9 @@ export const COLLECTIONS = {
   PI_CONFIGS: 'piConfigs',
   USERS: 'users',
   CHATBOT_KNOWLEDGE: 'chatbotKnowledgeBase',
-  ML_PREDICTIONS: 'mlPredictions'
+  ML_PREDICTIONS: 'mlPredictions',
+  HARVEST_CYCLES: 'harvest_cycles',
+  DAILY_FORECASTS: 'daily_forecasts'
 };
 
 // TypeScript Interfaces
@@ -109,6 +111,23 @@ export interface MLPrediction {
   prediction: any;
   confidence: number;
   timestamp: Timestamp;
+}
+
+export interface DailyForecast {
+  id?: string;
+  cycle_id: string;
+  days_elapsed: number;
+  forecast_timestamp: string; // ISO 8601 format
+  forecasted_yield_g_plant: number;
+  forecasted_harvest_days: number;
+  total_forecasted_yield_g: number;
+  // Optional context data
+  current_height_cm?: number;
+  current_avg_temp?: number;
+  current_avg_humidity?: number;
+  current_avg_moisture?: number;
+  active_plant_count_used?: number;
+  created_at?: string;
 }
 
 // Firestore Helper Functions
@@ -606,6 +625,231 @@ class FirestoreService {
     } catch (error) {
       console.error('Error adding ML prediction:', error);
       return false;
+    }
+  }
+
+  // ==================== HARVEST CYCLES ====================
+  
+  async addHarvestCycle(harvestData: any): Promise<boolean> {
+    try {
+      // Get all existing harvest cycles to determine the next cycle number
+      const querySnapshot = await getDocs(collection(db, COLLECTIONS.HARVEST_CYCLES));
+      const existingCycles = querySnapshot.docs.map(doc => doc.id);
+      
+      // Find the highest cycle number
+      let maxCycleNum = 0;
+      existingCycles.forEach(id => {
+        const match = id.match(/^cycle_(\d+)$/);
+        if (match) {
+          const num = parseInt(match[1]);
+          if (num > maxCycleNum) maxCycleNum = num;
+        }
+      });
+      
+      // Generate next cycle ID
+      const nextCycleNum = maxCycleNum + 1;
+      const cycleId = `cycle_${String(nextCycleNum).padStart(3, '0')}`;
+      
+      const docRef = doc(db, COLLECTIONS.HARVEST_CYCLES, cycleId);
+      await setDoc(docRef, harvestData);
+      console.log(`✅ Harvest cycle added to Firestore with ID: ${cycleId}`);
+      return true;
+    } catch (error) {
+      console.error('❌ Error adding harvest cycle:', error);
+      return false;
+    }
+  }
+
+  async getHarvestCycles(cropId?: string): Promise<any[]> {
+    try {
+      let q = query(collection(db, COLLECTIONS.HARVEST_CYCLES), orderBy('created_at', 'desc'));
+      
+      if (cropId) {
+        q = query(
+          collection(db, COLLECTIONS.HARVEST_CYCLES),
+          where('crop_id', '==', cropId),
+          orderBy('created_at', 'desc')
+        );
+      }
+
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (error) {
+      console.error('Error getting harvest cycles:', error);
+      return [];
+    }
+  }
+
+  async updateHarvestCycle(cycleId: string, updates: any): Promise<boolean> {
+    try {
+      const docRef = doc(db, COLLECTIONS.HARVEST_CYCLES, cycleId);
+      await updateDoc(docRef, {
+        ...updates,
+        updated_at: new Date().toISOString()
+      });
+      console.log('✅ Harvest cycle updated');
+      return true;
+    } catch (error) {
+      console.error('❌ Error updating harvest cycle:', error);
+      return false;
+    }
+  }
+
+  async deleteHarvestCycle(cycleId: string): Promise<boolean> {
+    try {
+      const docRef = doc(db, COLLECTIONS.HARVEST_CYCLES, cycleId);
+      await deleteDoc(docRef);
+      console.log('✅ Harvest cycle deleted');
+      return true;
+    } catch (error) {
+      console.error('❌ Error deleting harvest cycle:', error);
+      return false;
+    }
+  }
+
+  // ==================== DAILY FORECASTS ====================
+  
+  async addDailyForecast(forecastData: Omit<DailyForecast, 'id' | 'created_at'>): Promise<boolean> {
+    try {
+      const docRef = doc(collection(db, COLLECTIONS.DAILY_FORECASTS));
+      await setDoc(docRef, {
+        ...forecastData,
+        created_at: new Date().toISOString()
+      });
+      console.log('✅ Daily forecast added to Firestore');
+      return true;
+    } catch (error) {
+      console.error('❌ Error adding daily forecast:', error);
+      return false;
+    }
+  }
+
+  async getDailyForecastsByCycle(cycleId: string): Promise<DailyForecast[]> {
+    try {
+      const q = query(
+        collection(db, COLLECTIONS.DAILY_FORECASTS),
+        where('cycle_id', '==', cycleId),
+        orderBy('days_elapsed', 'asc')
+      );
+      
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as DailyForecast));
+    } catch (error) {
+      console.error('Error getting daily forecasts:', error);
+      return [];
+    }
+  }
+
+  async getLatestForecastByCycle(cycleId: string): Promise<DailyForecast | null> {
+    try {
+      const q = query(
+        collection(db, COLLECTIONS.DAILY_FORECASTS),
+        where('cycle_id', '==', cycleId),
+        orderBy('days_elapsed', 'desc'),
+        limit(1)
+      );
+      
+      const querySnapshot = await getDocs(q);
+      if (querySnapshot.empty) return null;
+      
+      const doc = querySnapshot.docs[0];
+      return {
+        id: doc.id,
+        ...doc.data()
+      } as DailyForecast;
+    } catch (error) {
+      console.error('Error getting latest forecast:', error);
+      return null;
+    }
+  }
+
+  async deleteDailyForecast(forecastId: string): Promise<boolean> {
+    try {
+      const docRef = doc(db, COLLECTIONS.DAILY_FORECASTS, forecastId);
+      await deleteDoc(docRef);
+      console.log('✅ Daily forecast deleted');
+      return true;
+    } catch (error) {
+      console.error('❌ Error deleting daily forecast:', error);
+      return false;
+    }
+  }
+
+  // ==================== MIGRATION UTILITY ====================
+  
+  /**
+   * Migrate existing harvest_cycles to use cycle_001, cycle_002, etc. format
+   * This is a one-time migration utility
+   */
+  async migrateHarvestCyclesToNewIds(): Promise<{ success: boolean; message: string }> {
+    try {
+      console.log('🔄 Starting harvest cycles migration...');
+      
+      // Get all existing harvest cycles
+      const querySnapshot = await getDocs(collection(db, COLLECTIONS.HARVEST_CYCLES));
+      
+      if (querySnapshot.empty) {
+        return { success: true, message: 'No harvest cycles to migrate' };
+      }
+
+      const existingDocs = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        data: doc.data()
+      }));
+
+      console.log(`📊 Found ${existingDocs.length} harvest cycles to migrate`);
+
+      // Sort by created_at to maintain order
+      existingDocs.sort((a, b) => {
+        const dateA = a.data.created_at || a.data.planting_date || '';
+        const dateB = b.data.created_at || b.data.planting_date || '';
+        return dateA.localeCompare(dateB);
+      });
+
+      // Create new documents with cycle_001, cycle_002, etc.
+      let successCount = 0;
+      for (let i = 0; i < existingDocs.length; i++) {
+        const cycleId = `cycle_${String(i + 1).padStart(3, '0')}`;
+        const oldId = existingDocs[i].id;
+
+        // Skip if already in correct format
+        if (oldId === cycleId) {
+          console.log(`✓ ${oldId} already in correct format, skipping`);
+          successCount++;
+          continue;
+        }
+
+        try {
+          // Create new document with new ID
+          const newDocRef = doc(db, COLLECTIONS.HARVEST_CYCLES, cycleId);
+          await setDoc(newDocRef, existingDocs[i].data);
+          console.log(`✓ Migrated ${oldId} → ${cycleId}`);
+
+          // Delete old document
+          const oldDocRef = doc(db, COLLECTIONS.HARVEST_CYCLES, oldId);
+          await deleteDoc(oldDocRef);
+          console.log(`✓ Deleted old document ${oldId}`);
+
+          successCount++;
+        } catch (error) {
+          console.error(`❌ Error migrating ${oldId}:`, error);
+        }
+      }
+
+      const message = `✅ Migration complete! Migrated ${successCount}/${existingDocs.length} harvest cycles`;
+      console.log(message);
+      return { success: true, message };
+      
+    } catch (error) {
+      const errorMsg = `❌ Migration failed: ${error}`;
+      console.error(errorMsg);
+      return { success: false, message: errorMsg };
     }
   }
 }

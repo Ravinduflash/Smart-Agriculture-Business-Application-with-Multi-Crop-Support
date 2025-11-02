@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migrate Harvest Cycles</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #10B981;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #10B981;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #059669;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+        }
+        .success {
+            background-color: #D1FAE5;
+            color: #065F46;
+            border: 1px solid #10B981;
+        }
+        .error {
+            background-color: #FEE2E2;
+            color: #991B1B;
+            border: 1px solid #EF4444;
+        }
+        .info {
+            background-color: #DBEAFE;
+            color: #1E40AF;
+            border: 1px solid #3B82F6;
+        }
+        #log {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #1F2937;
+            color: #10B981;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            display: none;
+        }
+        .warning {
+            background-color: #FEF3C7;
+            color: #92400E;
+            border: 1px solid #F59E0B;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Harvest Cycles Migration Tool</h1>
+        
+        <div class="warning">
+            <strong>⚠️ Warning:</strong> This will rename all existing harvest cycle document IDs to cycle_001, cycle_002, etc. 
+            Make sure your app is connected to the correct Firestore database!
+        </div>
+
+        <p>This tool will migrate your existing harvest_cycles documents to use the new ID format (cycle_001, cycle_002, etc.).</p>
+        
+        <button id="migrateBtn" onclick="runMigration()">🚀 Start Migration</button>
+        <button onclick="window.location.href='http://localhost:5173'">← Back to App</button>
+        
+        <div id="status"></div>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        // This will use the firestoreService from your running app
+        async function runMigration() {
+            const btn = document.getElementById('migrateBtn');
+            const status = document.getElementById('status');
+            const log = document.getElementById('log');
+            
+            btn.disabled = true;
+            status.style.display = 'block';
+            status.className = 'info';
+            status.innerHTML = '⏳ Migration in progress... Please wait.';
+            log.style.display = 'block';
+            log.textContent = '';
+
+            try {
+                // Get firestoreService from your app's global scope
+                const { firestoreService } = await import('./src/services/firestoreService.ts');
+                
+                // Override console.log temporarily to capture output
+                const originalLog = console.log;
+                console.log = function(...args) {
+                    originalLog.apply(console, args);
+                    log.textContent += args.join(' ') + '\n';
+                    log.scrollTop = log.scrollHeight;
+                };
+
+                const result = await firestoreService.migrateHarvestCyclesToNewIds();
+                
+                // Restore console.log
+                console.log = originalLog;
+
+                if (result.success) {
+                    status.className = 'success';
+                    status.innerHTML = `✅ ${result.message}`;
+                } else {
+                    status.className = 'error';
+                    status.innerHTML = `❌ ${result.message}`;
+                }
+            } catch (error) {
+                status.className = 'error';
+                status.innerHTML = `❌ Error: ${error.message}`;
+                log.textContent += `\n❌ ERROR: ${error.message}\n${error.stack}`;
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // Show instructions on load
+        window.addEventListener('load', () => {
+            console.log('Migration tool loaded. Open your main app (localhost:5173) first, then come back here to run the migration.');
+        });
+    </script>
+</body>
+</html>

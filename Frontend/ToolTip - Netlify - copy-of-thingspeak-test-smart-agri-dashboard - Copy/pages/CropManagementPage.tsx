@@ -1,14 +1,14 @@
 
 import React, { useState, useEffect, useContext } from 'react';
-import { Crop, OptimalConditions, SensorType, CropRecommendation, Sensor } from '../types';
-import { getMockCrops, getMockSensors } from '../services/mockDataService';
+import { Crop, OptimalConditions, CropRecommendation } from '../types';
+import { getMockCrops } from '../services/mockDataService';
 import { IconPlus, IconSun, IconWaterDrop, IconLeaf, IconTrash, DEFAULT_IMAGE_URL } from '../constants';
 import Modal from '../components/Modal';
 import { getCropOptimalConditions, getAICropRecommendations, generateCropImage } from '../services/geminiService';
 import Spinner from '../components/Spinner';
 import GeminiResponseDisplay from '../components/GeminiResponseDisplay';
 import { LanguageContext } from '../contexts/LanguageContext';
-import { fetchThingSpeakData, parseFloatSafe, ThingSpeakFeed } from '../services/thingSpeakService'; // Added Sensor type
+import { fetchThingSpeakData, parseFloatSafe, ThingSpeakFeed } from '../services/thingSpeakService';
 import { firestoreService, CropProfile } from '../src/services/firestoreService';
 
 const CropCard: React.FC<{ crop: Crop; t: (key: string) => string; onDelete: (cropId: string) => void }> = ({ crop, t, onDelete }) => (
@@ -65,10 +65,6 @@ function CropManagementPage(): JSX.Element {
 
   const [liveSensorData, setLiveSensorData] = useState<LiveSensorValues>({ temp: null, moisture: null, ph: null, nitrogen: null, phosphorus: null, potassium: null });
   const [isLoadingLiveData, setIsLoadingLiveData] = useState(true);
-  const [useLiveData, setUseLiveData] = useState(true);
-  const [manualTemperature, setManualTemperature] = useState('');
-  const [manualMoisture, setManualMoisture] = useState('');
-  const [manualPh, setManualPh] = useState('6.5'); // Default manual pH
 
   const [isRecommendationModalOpen, setIsRecommendationModalOpen] = useState(false);
   const [recommendations, setRecommendations] = useState<CropRecommendation[] | null>(null);
@@ -78,6 +74,21 @@ function CropManagementPage(): JSX.Element {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [cropToDelete, setCropToDelete] = useState<Crop | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Harvest Cycle Management State
+  const [isHarvestModalOpen, setIsHarvestModalOpen] = useState(false);
+  const [selectedCropForHarvest, setSelectedCropForHarvest] = useState<Crop | null>(null);
+  const [harvestFormData, setHarvestFormData] = useState({
+    planting_date: '',
+    status: 'active' as 'active' | 'inactive' | 'completed',
+    current_height_cm: '',
+    final_harvest_date: '',
+    final_actual_yield_g_total: '',
+    final_plant_count: '',
+    final_pest_loss_g: '',
+    final_avg_weight_g: ''
+  });
+  const [isSavingHarvest, setIsSavingHarvest] = useState(false);
 
   useEffect(() => {
     // Load crops from Firestore instead of mock data
@@ -242,66 +253,6 @@ function CropManagementPage(): JSX.Element {
     setIsModalOpen(true);
   };
 
-  const handleGetRecommendations = async () => {
-    setIsLoadingRecommendations(true);
-    setRecommendations(null);
-    setRecommendationError(null);
-
-    let temp: number, moisture: number, phValue: number; 
-    // NPK values are for context but Gemini prompt for recommendation primarily uses temp, moisture, pH
-    let nitrogen: number | null = null, phosphorus: number | null = null, potassium: number | null = null;
-
-
-    if (useLiveData) {
-      if (isLoadingLiveData) {
-        setRecommendationError(t('cropManagement.recommendation.error.loadingLiveData'));
-        setIsLoadingRecommendations(false);
-        return;
-      }
-      if (liveSensorData.temp === null || liveSensorData.moisture === null) { 
-        setRecommendationError(t('cropManagement.recommendation.error.incompleteLiveData'));
-        setIsLoadingRecommendations(false);
-        return;
-      }
-      temp = liveSensorData.temp;
-      moisture = liveSensorData.moisture;
-      // pH is not from ThingSpeak, so use manualPh. Defaulted to 6.5 if manualPh is empty.
-      phValue = parseFloat(manualPh) || 6.5; 
-      nitrogen = liveSensorData.nitrogen;
-      phosphorus = liveSensorData.phosphorus;
-      potassium = liveSensorData.potassium;
-
-    } else {
-      temp = parseFloat(manualTemperature);
-      moisture = parseFloat(manualMoisture);
-      phValue = parseFloat(manualPh);
-
-      if (isNaN(temp) || isNaN(moisture) || isNaN(phValue)) {
-        setRecommendationError(t('cropManagement.recommendation.error.invalidManualInput'));
-        setIsLoadingRecommendations(false);
-        return;
-      }
-    }
-    
-    // Construct conditions for Gemini. The prompt might need to be adjusted if NPK values are to be explicitly used by Gemini for recommendations.
-    // For now, it mainly uses temp, moisture, pH.
-    const conditionsForGemini = { temperature: temp, moisture: moisture, ph: phValue };
-
-
-    const result = await getAICropRecommendations(conditionsForGemini, currentLanguage, t);
-    
-    if (typeof result === 'string') { 
-        setRecommendationError(result); 
-    } else if (result && Array.isArray(result)) {
-        setRecommendations(result);
-    } else { 
-        setRecommendationError(t('cropManagement.recommendation.error.fetchFailed'));
-    }
-    
-    setIsLoadingRecommendations(false);
-    setIsRecommendationModalOpen(true);
-  };
-
   const handleDeleteClick = (cropId: string) => {
     const crop = crops.find(c => c.id === cropId);
     if (crop) {
@@ -340,6 +291,85 @@ function CropManagementPage(): JSX.Element {
   const handleCancelDelete = () => {
     setIsDeleteModalOpen(false);
     setCropToDelete(null);
+  };
+
+  // Harvest Cycle Management Functions
+  const handleOpenHarvestForm = (crop: Crop) => {
+    setSelectedCropForHarvest(crop);
+    setIsHarvestModalOpen(true);
+    // Reset form
+    setHarvestFormData({
+      planting_date: '',
+      status: 'active',
+      current_height_cm: '',
+      final_harvest_date: '',
+      final_actual_yield_g_total: '',
+      final_plant_count: '',
+      final_pest_loss_g: '',
+      final_avg_weight_g: ''
+    });
+  };
+
+  const handleSaveHarvestCycle = async () => {
+    if (!selectedCropForHarvest || !harvestFormData.planting_date) {
+      alert(t('cropManagement.harvest.error.missingPlantingDate') || 'Please enter planting date');
+      return;
+    }
+
+    // Validate based on status
+    if (harvestFormData.status === 'completed') {
+      if (!harvestFormData.final_harvest_date || !harvestFormData.final_actual_yield_g_total || 
+          !harvestFormData.final_plant_count) {
+        alert(t('cropManagement.harvest.error.missingCompletedFields') || 'Please fill all required fields for completed harvest');
+        return;
+      }
+    }
+
+    setIsSavingHarvest(true);
+    console.log('💾 Saving harvest cycle to Firestore');
+
+    try {
+      const harvestCycleData: any = {
+        crop_id: selectedCropForHarvest.id,
+        crop_type: selectedCropForHarvest.name,
+        planting_date: new Date(harvestFormData.planting_date).toISOString(),
+        status: harvestFormData.status,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      // Add status-specific fields
+      if (harvestFormData.status === 'active' && harvestFormData.current_height_cm) {
+        harvestCycleData.current_height_cm = parseFloat(harvestFormData.current_height_cm);
+        harvestCycleData.last_height_update = new Date().toISOString();
+      }
+
+      if (harvestFormData.status === 'completed') {
+        harvestCycleData.final_harvest_date = new Date(harvestFormData.final_harvest_date).toISOString();
+        harvestCycleData.final_actual_yield_g_total = parseFloat(harvestFormData.final_actual_yield_g_total);
+        harvestCycleData.final_plant_count = parseInt(harvestFormData.final_plant_count);
+        harvestCycleData.final_pest_loss_g = harvestFormData.final_pest_loss_g ? parseFloat(harvestFormData.final_pest_loss_g) : 0;
+        harvestCycleData.final_avg_weight_g = harvestFormData.final_avg_weight_g ? parseFloat(harvestFormData.final_avg_weight_g) : 0;
+      }
+
+      // Save to Firestore harvest_cycles collection
+      const success = await firestoreService.addHarvestCycle(harvestCycleData);
+
+      if (success) {
+        console.log('✅ Harvest cycle saved successfully');
+        setIsHarvestModalOpen(false);
+        setSelectedCropForHarvest(null);
+        alert(t('cropManagement.harvest.success.saved') || 'Harvest cycle saved successfully!');
+      } else {
+        console.error('❌ Failed to save harvest cycle');
+        alert(t('cropManagement.harvest.error.saveFailed') || 'Failed to save harvest cycle. Please try again.');
+      }
+    } catch (error) {
+      console.error('❌ Error saving harvest cycle:', error);
+      alert(t('cropManagement.harvest.error.saveFailed') || 'Failed to save harvest cycle. Please try again.');
+    } finally {
+      setIsSavingHarvest(false);
+    }
   };
 
 
@@ -444,64 +474,40 @@ function CropManagementPage(): JSX.Element {
 
       <div className="mt-10 pt-6 border-t border-gray-200">
         <h2 className="text-2xl font-semibold text-textDark mb-3 flex items-center">
-          {t('cropManagement.recommendation.engineTitle')} <span role="img" aria-label="sparkles" className="ml-2"></span>
+          {t('cropManagement.harvest.sectionTitle')} <span role="img" aria-label="plant" className="ml-2">🌱</span>
         </h2>
         <p className="text-textMedium mb-6">
-          {t('cropManagement.recommendation.engineSubtitle')}
+          {t('cropManagement.harvest.sectionSubtitle')}
         </p>
+        
         <div className="bg-card p-6 rounded-xl shadow-lg">
-          <div className="space-y-4">
-          <div className="flex items-center">
-                <input
-                    id="useLiveData"
-                    name="useLiveData"
-                    type="checkbox"
-                    checked={useLiveData}
-                    onChange={(e) => setUseLiveData(e.target.checked)}
-                    className="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"
-                    disabled={isLoadingLiveData}
-                />
-                <label htmlFor="useLiveData" className="ml-2 block text-sm text-gray-900">
-                    {t('cropManagement.recommendation.useLiveData')}
-                    {isLoadingLiveData && <span className="text-xs text-gray-500 ml-1"> ({t('cropManagement.recommendation.loadingLiveData')})</span>}
-                    {!isLoadingLiveData && (
-                        <span className="text-xs text-gray-500 ml-1">
-                            (
-                            {`${t('cropManagement.recommendation.liveData.temp')}: ${liveSensorData.temp ?? t('common.na')}°C, `}
-                            {`${t('cropManagement.recommendation.liveData.moisture')}: ${liveSensorData.moisture ?? t('common.na')}%, `}
-                            {`${t('cropManagement.recommendation.liveData.ph')}: ${t('common.na')} (Use manual input below), `}
-                            {`N: ${liveSensorData.nitrogen ?? t('common.na')}, P: ${liveSensorData.phosphorus ?? t('common.na')}, K: ${liveSensorData.potassium ?? t('common.na')}`}
-                            )
-                        </span>
-                    )}
-                </label>
+          <h3 className="text-lg font-semibold text-textDark mb-4">{t('cropManagement.harvest.selectCrop')}</h3>
+          {crops.length === 0 ? (
+            <p className="text-textMedium text-center py-4">{t('cropManagement.harvest.noCropsAvailable')}</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {crops.map((crop) => (
+                <button
+                  key={crop.id}
+                  onClick={() => handleOpenHarvestForm(crop)}
+                  className="bg-white border-2 border-gray-200 hover:border-primary rounded-lg p-4 text-left transition-all hover:shadow-md"
+                >
+                  <div className="flex items-center space-x-3">
+                    <img 
+                      src={crop.imageUrl || DEFAULT_IMAGE_URL} 
+                      alt={crop.name} 
+                      className="w-12 h-12 rounded-full object-cover"
+                      onError={(e) => (e.currentTarget.src = DEFAULT_IMAGE_URL)}
+                    />
+                    <div>
+                      <h4 className="font-semibold text-gray-800">{crop.name}</h4>
+                      <p className="text-xs text-gray-500">{t('cropManagement.harvest.clickToManage')}</p>
+                    </div>
+                  </div>
+                </button>
+              ))}
             </div>
-
-
-            {!useLiveData && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border border-gray-200 rounded-md bg-gray-50">
-                <div>
-                  <label htmlFor="manualTemp" className="block text-sm font-medium text-gray-700">{t('cropManagement.recommendation.manualInput.temp')}</label>
-                  <input type="number" id="manualTemp" value={manualTemperature} onChange={(e) => setManualTemperature(e.target.value)} className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary text-gray-900" placeholder="e.g., 25" aria-label={t('cropManagement.recommendation.manualInput.temp')}/>
-                </div>
-                <div>
-                  <label htmlFor="manualMoisture" className="block text-sm font-medium text-gray-700">{t('cropManagement.recommendation.manualInput.moisture')}</label>
-                  <input type="number" id="manualMoisture" value={manualMoisture} onChange={(e) => setManualMoisture(e.target.value)} className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary text-gray-900" placeholder="e.g., 60" aria-label={t('cropManagement.recommendation.manualInput.moisture')}/>
-                </div>
-                <div>
-                  <label htmlFor="manualPh" className="block text-sm font-medium text-gray-700">{t('cropManagement.recommendation.manualInput.ph')}</label>
-                  <input type="number" id="manualPh" step="0.1" value={manualPh} onChange={(e) => setManualPh(e.target.value)} className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary text-gray-900" placeholder="e.g., 6.5" aria-label={t('cropManagement.recommendation.manualInput.ph')}/>
-                </div>
-              </div>
-            )}
-             <button
-                onClick={handleGetRecommendations}
-                disabled={isLoadingRecommendations || (useLiveData && isLoadingLiveData)}
-                className="w-full bg-primary hover:bg-primary-dark text-white font-semibold px-6 py-3 rounded-lg shadow-md transition-colors duration-150 ease-in-out disabled:opacity-70 flex items-center justify-center text-base"
-            >
-                {isLoadingRecommendations ? <Spinner size="sm" color="text-white" /> : (<><span role="img" aria-label="sparkles" className="mr-2"></span> {t('cropManagement.recommendation.button.getRecommendations')}</>)}
-            </button>
-          </div>
+          )}
         </div>
       </div>
 
@@ -585,6 +591,172 @@ function CropManagementPage(): JSX.Element {
                 <IconTrash className="w-4 h-4 mr-2" />
                 {t('cropManagement.delete.modal.confirm')}
               </>
+            )}
+          </button>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={isHarvestModalOpen}
+        onClose={() => setIsHarvestModalOpen(false)}
+        title={`${t('cropManagement.harvest.modal.title')} - ${selectedCropForHarvest?.name || ''}`}
+      >
+        <div className="space-y-4">
+          {/* Planting Date - Required */}
+          <div>
+            <label htmlFor="plantingDate" className="block text-sm font-medium text-gray-700 mb-1">
+              {t('cropManagement.harvest.modal.plantingDate')} <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="date"
+              id="plantingDate"
+              value={harvestFormData.planting_date}
+              onChange={(e) => setHarvestFormData({...harvestFormData, planting_date: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary text-gray-900"
+              required
+            />
+          </div>
+
+          {/* Status Dropdown */}
+          <div>
+            <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+              {t('cropManagement.harvest.modal.status')} <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="status"
+              value={harvestFormData.status}
+              onChange={(e) => setHarvestFormData({...harvestFormData, status: e.target.value as 'active' | 'inactive' | 'completed'})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary text-gray-900"
+            >
+              <option value="active">{t('cropManagement.harvest.modal.statusActive')}</option>
+              <option value="inactive">{t('cropManagement.harvest.modal.statusInactive')}</option>
+              <option value="completed">{t('cropManagement.harvest.modal.statusCompleted')}</option>
+            </select>
+          </div>
+
+          {/* Active Status Fields */}
+          {harvestFormData.status === 'active' && (
+            <div className="p-4 bg-green-50 border border-green-200 rounded-md">
+              <h4 className="text-sm font-semibold text-green-800 mb-3">{t('cropManagement.harvest.modal.activeFields')}</h4>
+              <div>
+                <label htmlFor="currentHeight" className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('cropManagement.harvest.modal.currentHeight')} (cm)
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  id="currentHeight"
+                  value={harvestFormData.current_height_cm}
+                  onChange={(e) => setHarvestFormData({...harvestFormData, current_height_cm: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary text-gray-900"
+                  placeholder="e.g., 16.5"
+                />
+                <p className="text-xs text-gray-500 mt-1">{t('cropManagement.harvest.modal.heightNote')}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Completed Status Fields */}
+          {harvestFormData.status === 'completed' && (
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-md space-y-3">
+              <h4 className="text-sm font-semibold text-blue-800 mb-3">{t('cropManagement.harvest.modal.completedFields')}</h4>
+              
+              <div>
+                <label htmlFor="finalHarvestDate" className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('cropManagement.harvest.modal.finalHarvestDate')} <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  id="finalHarvestDate"
+                  value={harvestFormData.final_harvest_date}
+                  onChange={(e) => setHarvestFormData({...harvestFormData, final_harvest_date: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary text-gray-900"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="totalYield" className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('cropManagement.harvest.modal.totalYield')} (g) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    id="totalYield"
+                    value={harvestFormData.final_actual_yield_g_total}
+                    onChange={(e) => setHarvestFormData({...harvestFormData, final_actual_yield_g_total: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary text-gray-900"
+                    placeholder="e.g., 1750"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="plantCount" className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('cropManagement.harvest.modal.plantCount')} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    id="plantCount"
+                    value={harvestFormData.final_plant_count}
+                    onChange={(e) => setHarvestFormData({...harvestFormData, final_plant_count: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary text-gray-900"
+                    placeholder="e.g., 14"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="pestLoss" className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('cropManagement.harvest.modal.pestLoss')} (g)
+                  </label>
+                  <input
+                    type="number"
+                    id="pestLoss"
+                    value={harvestFormData.final_pest_loss_g}
+                    onChange={(e) => setHarvestFormData({...harvestFormData, final_pest_loss_g: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary text-gray-900"
+                    placeholder="e.g., 360"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="avgWeight" className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('cropManagement.harvest.modal.avgWeight')} (g)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    id="avgWeight"
+                    value={harvestFormData.final_avg_weight_g}
+                    onChange={(e) => setHarvestFormData({...harvestFormData, final_avg_weight_g: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary text-gray-900"
+                    placeholder="e.g., 90"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-6 flex justify-end space-x-3">
+          <button 
+            type="button" 
+            onClick={() => setIsHarvestModalOpen(false)}
+            disabled={isSavingHarvest}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50"
+          >
+            {t('cropManagement.harvest.modal.cancel')}
+          </button>
+          <button
+            onClick={handleSaveHarvestCycle}
+            disabled={isSavingHarvest}
+            className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-md shadow transition-colors disabled:opacity-50 flex items-center"
+          >
+            {isSavingHarvest ? (
+              <>
+                <Spinner size="sm" color="text-white" />
+                <span className="ml-2">{t('cropManagement.harvest.modal.saving')}</span>
+              </>
+            ) : (
+              t('cropManagement.harvest.modal.save')
             )}
           </button>
         </div>

@@ -3,6 +3,8 @@ import { IconUserCircle, IconChevronDown, IconNotification, IconLanguage, IconHe
 import { useLocation, useNavigate } from 'react-router-dom';
 import { LanguageContext } from '../contexts/LanguageContext';
 import { useTooltipManager } from '../hooks/useTooltipManager';
+import { useAuth } from '../src/contexts/AuthContext';
+import { authService } from '../src/services/authService';
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -16,6 +18,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const navigate = useNavigate();
   const { currentLanguage, changeLanguage, t } = useContext(LanguageContext);
   const { isTooltipEnabled, toggleTooltip } = useTooltipManager();
+  const { currentUser, userProfile } = useAuth();
 
   useEffect(() => {
     const timerId = setInterval(() => {
@@ -38,6 +41,14 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
   const handleNotificationClick = () => {
     navigate('/notifications');
+  };
+
+  const handleSignOut = async () => {
+    const result = await authService.signOutUser();
+    if (result.success) {
+      navigate('/login');
+    }
+    setUserDropdownOpen(false);
   };
 
   const handleLanguageChange = (langCode: LanguageOption['code']) => {
@@ -136,14 +147,32 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             aria-haspopup="true"
           >
             <IconUserCircle className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 rounded-full mr-1" />
-            <span className="hidden md:block text-xs sm:text-sm">{t('header.adminUser')}</span>
+            <span className="hidden md:block text-xs sm:text-sm">{userProfile?.displayName || currentUser?.displayName || t('header.adminUser')}</span>
             <IconChevronDown className={`w-3 h-3 sm:w-4 sm:h-4 ml-1 transform transition-transform duration-200 ${userDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
           {userDropdownOpen && (
             <div className="absolute right-0 mt-2 w-40 sm:w-48 bg-white rounded-md shadow-lg py-1 z-50 border" role="menu">
-              <button role="menuitem" className="block w-full text-left px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-100">{t('header.dropdown.profile')}</button>
-              <button role="menuitem" className="block w-full text-left px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-100">{t('header.dropdown.settings')}</button>
-              <button role="menuitem" className="block w-full text-left px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-100">{t('header.dropdown.logout')}</button>
+              <button 
+                role="menuitem" 
+                onClick={() => { navigate('/settings'); setUserDropdownOpen(false); }}
+                className="block w-full text-left px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-100"
+              >
+                {t('header.dropdown.profile')}
+              </button>
+              <button 
+                role="menuitem" 
+                onClick={() => { navigate('/settings'); setUserDropdownOpen(false); }}
+                className="block w-full text-left px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-100"
+              >
+                {t('header.dropdown.settings')}
+              </button>
+              <button 
+                role="menuitem" 
+                onClick={handleSignOut}
+                className="block w-full text-left px-3 sm:px-4 py-2 text-xs sm:text-sm text-red-600 hover:bg-red-50"
+              >
+                {t('header.dropdown.logout')}
+              </button>
             </div>
           )}
         </div>

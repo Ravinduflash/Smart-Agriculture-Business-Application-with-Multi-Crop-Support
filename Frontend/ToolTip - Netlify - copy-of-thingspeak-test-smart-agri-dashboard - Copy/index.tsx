@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { HashRouter } from 'react-router-dom';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { AuthProvider } from './src/contexts/AuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
 
 const rootElement = document.getElementById('root');
@@ -14,11 +15,13 @@ const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <ErrorBoundary>
-      <LanguageProvider>
-        <HashRouter>
-          <App />
-        </HashRouter>
-      </LanguageProvider>
+      <AuthProvider>
+        <LanguageProvider>
+          <HashRouter>
+            <App />
+          </HashRouter>
+        </LanguageProvider>
+      </AuthProvider>
     </ErrorBoundary>
   </React.StrictMode>
 );
