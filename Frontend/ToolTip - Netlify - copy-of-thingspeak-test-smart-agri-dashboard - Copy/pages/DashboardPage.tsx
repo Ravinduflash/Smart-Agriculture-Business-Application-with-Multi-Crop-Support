@@ -31,6 +31,7 @@ const DashboardPage: React.FC = () => {
   const [isLoadingSensors, setIsLoadingSensors] = useState<boolean>(true);
   const [isLoadingAdvice, setIsLoadingAdvice] = useState<boolean>(false);
   const [isUpcomingModelsOpen, setIsUpcomingModelsOpen] = useState(false);
+  const [isLoadingSoilQuality, setIsLoadingSoilQuality] = useState<boolean>(true);
 
   // Initialize sensors with proper defaults after context is loaded
   useEffect(() => {
@@ -82,11 +83,101 @@ const DashboardPage: React.FC = () => {
       { name: t('dashboard.healthy'), value: 95, color: '#10B981' },
       { name: t('dashboard.diseased'), value: 5, color: '#EF4444' },
     ]);
-    setSoilQualityData([
-      { name: t('dashboard.optimal'), value: 70, color: '#10B981' },
-      { name: t('dashboard.fair'), value: 20, color: '#F59E0B' },
-      { name: t('dashboard.poor'), value: 10, color: '#EF4444' },
-    ]);
+    
+    // Load real soil quality data from Firestore
+    const loadSoilQualityData = async () => {
+      setIsLoadingSoilQuality(true);
+      try {
+        // Fetch last 100 sensor readings to get a good sample
+        const readings = await firestoreService.getLatestSensorReadings('crop_1762085977354', 100);
+        
+        console.log(`📊 Fetched ${readings.length} sensor readings for soil quality analysis`);
+        
+        // Count soil_moisture_status categorical variables
+        const statusCounts: { [key: string]: number } = {
+          'Optimal': 0,
+          'Wet': 0,
+          'Dry': 0
+        };
+        
+        readings.forEach((reading: any, index: number) => {
+          const status = reading.soil_moisture_status;
+          
+          // Debug: Log first few readings to verify data
+          if (index < 5) {
+            console.log(`Reading ${index + 1}:`, {
+              timestamp: reading.timestamp,
+              soil_moisture_status: status,
+              soil_moisture_raw: reading.soil_moisture_raw
+            });
+          }
+          
+          if (status === 'Optimal' || status === 'optimal') {
+            statusCounts['Optimal']++;
+          } else if (status === 'Wet' || status === 'wet') {
+            statusCounts['Wet']++;
+          } else if (status === 'Dry' || status === 'dry') {
+            statusCounts['Dry']++;
+          }
+        });
+        
+        console.log('📈 Status counts:', statusCounts);
+        
+        const total = statusCounts['Optimal'] + statusCounts['Wet'] + statusCounts['Dry'];
+        
+        console.log(`📊 Total counted: ${total} out of ${readings.length} readings`);
+        
+        if (total > 0) {
+          // Calculate percentages and create chart data
+          const optimalPercent = Math.round((statusCounts['Optimal'] / total) * 100);
+          const wetPercent = Math.round((statusCounts['Wet'] / total) * 100);
+          const dryPercent = Math.round((statusCounts['Dry'] / total) * 100);
+          
+          console.log('📊 Percentages:', { optimalPercent, wetPercent, dryPercent });
+          
+          const chartData: PieChartData[] = [
+            { 
+              name: t('dashboard.optimal'), 
+              value: optimalPercent, 
+              color: '#10B981' 
+            },
+            { 
+              name: t('dashboard.wet'), 
+              value: wetPercent, 
+              color: '#3B82F6' 
+            },
+            { 
+              name: t('dashboard.dry'), 
+              value: dryPercent, 
+              color: '#EF4444' 
+            }
+          ];
+          
+          setSoilQualityData(chartData);
+          console.log('✅ Loaded soil quality data from Firestore:', chartData);
+        } else {
+          // Fallback to mock data if no readings
+          console.warn('⚠️ No soil moisture readings found, using mock data');
+          setSoilQualityData([
+            { name: t('dashboard.optimal'), value: 70, color: '#10B981' },
+            { name: t('dashboard.fair'), value: 20, color: '#F59E0B' },
+            { name: t('dashboard.poor'), value: 10, color: '#EF4444' },
+          ]);
+        }
+      } catch (error) {
+        console.error('❌ Error loading soil quality data:', error);
+        // Fallback to mock data
+        setSoilQualityData([
+          { name: t('dashboard.optimal'), value: 70, color: '#10B981' },
+          { name: t('dashboard.fair'), value: 20, color: '#F59E0B' },
+          { name: t('dashboard.poor'), value: 10, color: '#EF4444' },
+        ]);
+      } finally {
+        setIsLoadingSoilQuality(false);
+      }
+    };
+    
+    loadSoilQualityData();
     
     const intervalId = setInterval(() => {
       loadSensorData(false); // Subsequent polling
@@ -437,6 +528,11 @@ const DashboardPage: React.FC = () => {
             className="lg:col-span-2"
             tooltipContent={getChartTooltip('SOIL_QUALITY')}
           >
+            {isLoadingSoilQuality ? (
+              <div className="flex justify-center items-center h-full">
+                <Spinner size="md" />
+              </div>
+            ) : (
               <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={soilQualityData} layout="horizontal" margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
@@ -451,6 +547,7 @@ const DashboardPage: React.FC = () => {
                       </Bar>
                   </BarChart>
               </ResponsiveContainer>
+            )}
           </ChartCard>
         </div>
       </div>

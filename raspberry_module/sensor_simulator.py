@@ -14,16 +14,19 @@ Press Ctrl+C to stop the simulation.
 import random
 import time
 from datetime import datetime
-import firebase_admin
-from firebase_admin import credentials, firestore
+import requests
+import json
 
 # =================================================================================
 # --- CONFIGURATION ---
 # =================================================================================
 
-# --- Firebase/Firestore Configuration ---
-SERVICE_ACCOUNT_PATH = "c:/Users/User/Desktop/SAS/Smart-Agriculture-Business-Application-with-Multi-Crop-Support/Credientals/gen-lang-client-0092156800-3f84a3882b65.json"
-FIRESTORE_DATABASE_ID = "sasapp"  # Using default database for compatibility
+# --- Cloud Functions Configuration ---
+CLOUD_FUNCTION_INGEST_URL = "https://asia-south1-gen-lang-client-0092156800.cloudfunctions.net/ingest_sensor_data"
+CLOUD_FUNCTION_GET_CONFIG_URL = "https://asia-south1-gen-lang-client-0092156800.cloudfunctions.net/get_pi_config"
+
+# --- Raspberry Pi Configuration ---
+PI_ID = "raspberry_pi_01"  # Unique identifier for this Raspberry Pi
 
 # --- Simulation Configuration ---
 CROP_ID = "crop_1762085977354"  # Use your newly created sample crop profile ID
@@ -173,52 +176,79 @@ def get_npk_status(nutrient, value):
 
 
 # =================================================================================
-# --- FIRESTORE INTEGRATION ---
+# --- CLOUD FUNCTIONS INTEGRATION ---
 # =================================================================================
 
-def initialize_firestore():
-    """Initialize Firebase Admin SDK and Firestore client"""
+def get_pi_config():
+    """
+    Fetch the active crop profile ID from Cloud Function.
+    This replaces direct Firestore reads.
+    """
     try:
-        cred = credentials.Certificate(SERVICE_ACCOUNT_PATH)
+        payload = {
+            "data": {
+                "pi_id": PI_ID
+            }
+        }
         
-        if not firebase_admin._apps:
-            # Initialize Firebase Admin SDK with project ID
-            firebase_admin.initialize_app(cred, {
-                'projectId': 'gen-lang-client-0092156800'
-            })
+        response = requests.post(
+            CLOUD_FUNCTION_GET_CONFIG_URL,
+            json=payload,
+            headers={'Content-Type': 'application/json'},
+            timeout=10
+        )
         
-        # Connect to the named database 'sasapp' using the correct parameter name
-        # Note: Use 'database_id' parameter (not 'database') for Firebase Admin SDK
-        db = firestore.client(database_id=FIRESTORE_DATABASE_ID)
-        print(f"✓ Successfully connected to Firestore database: {FIRESTORE_DATABASE_ID}")
-        
-        return db
+        if response.status_code == 200:
+            result = response.json()
+            config = result.get('result', {})
+            crop_id = config.get('activeCropProfileId', '')
+            print(f"✓ Retrieved crop profile ID from Cloud Function: {crop_id}")
+            return crop_id
+        else:
+            print(f"✗ Failed to get Pi config. Status: {response.status_code}")
+            print(f"   Response: {response.text}")
+            return None
+            
     except Exception as e:
-        print(f"✗ Error initializing Firestore: {e}")
-        print(f"   Attempting connection to database: {FIRESTORE_DATABASE_ID}")
-        import traceback
-        traceback.print_exc()
+        print(f"✗ Error fetching Pi config: {e}")
         return None
 
 
-def send_to_firestore(db, sensor_data):
-    """Upload sensor data to Firestore"""
-    if db is None:
-        print("✗ Firestore not initialized. Cannot upload data.")
-        return False
-    
+def send_to_cloud_function(sensor_data):
+    """
+    Upload sensor data via Cloud Function instead of direct Firestore write.
+    This is the modern, scalable approach.
+    """
     try:
-        # Generate document ID based on timestamp
-        timestamp_obj = datetime.strptime(sensor_data['timestamp'], '%Y-%m-%d %H:%M:%S')
-        doc_id = f"{CROP_ID}_{timestamp_obj.strftime('%Y%m%d_%H%M%S')}"
+        response = requests.post(
+            CLOUD_FUNCTION_INGEST_URL,
+            json=sensor_data,
+            headers={'Content-Type': 'application/json'},
+            timeout=10
+        )
         
-        # Upload to Firestore
-        db.collection('sensorReadings').document(doc_id).set(sensor_data)
-        print(f"✓ Data sent to Firestore. Document ID: {doc_id}")
-        return True
-        
+        if response.status_code == 200:
+            result = response.json()
+            if result.get('success'):
+                doc_id = result.get('document_id', 'unknown')
+                print(f"✓ Data sent to Cloud Function. Document ID: {doc_id}")
+                return True
+            else:
+                print(f"✗ Cloud Function returned error: {result.get('error', 'Unknown error')}")
+                return False
+        else:
+            print(f"✗ Failed to send data. Status: {response.status_code}")
+            print(f"   Response: {response.text}")
+            return False
+            
+    except requests.exceptions.Timeout:
+        print("✗ Request timeout - Cloud Function took too long to respond")
+        return False
+    except requests.exceptions.ConnectionError:
+        print("✗ Connection error - Check your internet connection")
+        return False
     except Exception as e:
-        print(f"✗ Error sending data to Firestore: {e}")
+        print(f"✗ Error sending data to Cloud Function: {e}")
         return False
 
 
@@ -336,24 +366,30 @@ class SensorSimulator:
 def main():
     """Main simulation loop"""
     print("=" * 60)
-    print("Smart Agriculture Sensor Simulator")
+    print("Smart Agriculture Sensor Simulator (Cloud Functions)")
     print("=" * 60)
-    print(f"Crop ID: {CROP_ID}")
+    print(f"Pi ID: {PI_ID}")
     print(f"Data Interval: {DATA_INTERVAL_SECONDS} seconds ({DATA_INTERVAL_SECONDS/60:.1f} minutes)")
-    print(f"Firestore Database: {FIRESTORE_DATABASE_ID}")
+    print(f"Cloud Function URL: {CLOUD_FUNCTION_INGEST_URL}")
     print("=" * 60)
     
-    # Initialize Firestore
-    db = initialize_firestore()
-    if db is None:
-        print("\n✗ Failed to initialize Firestore. Exiting...")
-        return
+    # Fetch active crop profile ID from Cloud Function
+    print("\n📡 Fetching active crop profile from Cloud Function...")
+    active_crop_id = get_pi_config()
+    
+    if active_crop_id:
+        print(f"✓ Using crop profile: {active_crop_id}")
+        # Override CROP_ID with the one from Cloud Function
+        global CROP_ID
+        CROP_ID = active_crop_id
+    else:
+        print(f"⚠️  Failed to fetch crop profile. Using default: {CROP_ID}")
     
     # Initialize simulator
     simulator = SensorSimulator()
     
     print("\n🚀 Starting sensor simulation...")
-    print("📊 Data will be sent to Firestore and displayed in your React web app")
+    print("📊 Data will be sent via Cloud Function to Firestore")
     print("⏱️  Press Ctrl+C to stop the simulation\n")
     
     try:
@@ -361,7 +397,7 @@ def main():
         print("📡 Collecting initial sensor readings...")
         sensor_data = simulator.generate_sensor_data()
         simulator.print_sensor_data(sensor_data)
-        send_to_firestore(db, sensor_data)
+        send_to_cloud_function(sensor_data)
         
         print(f"\n✓ Initial data sent. Next reading in {DATA_INTERVAL_SECONDS/60:.1f} minutes...")
         
@@ -372,7 +408,7 @@ def main():
             print(f"\n📡 Collecting sensor readings...")
             sensor_data = simulator.generate_sensor_data()
             simulator.print_sensor_data(sensor_data)
-            send_to_firestore(db, sensor_data)
+            send_to_cloud_function(sensor_data)
             
             print(f"\n✓ Data sent. Next reading in {DATA_INTERVAL_SECONDS/60:.1f} minutes...")
     
