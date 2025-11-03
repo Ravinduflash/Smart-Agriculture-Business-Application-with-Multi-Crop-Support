@@ -152,7 +152,7 @@ export const getFarmingAdvice = async (
       model: TEXT_MODEL,
       contents: fullPrompt, 
     });
-    return response.text;
+    return response.text || null;
   } catch (error) {
     console.error("Error getting farming advice:", error);
     const detail = getDetailedErrorMessage(error);
@@ -184,9 +184,9 @@ export const getAICropRecommendations = async (
       }
     });
     
-    const textResponse = response.text;
+    const textResponse = response.text || '';
     // Parse as unknown to perform detailed runtime checks
-    const parsedJson = parseJsonFromText<unknown>(textResponse, t);
+    const parsedJson = parseJsonFromText<unknown>(textResponse);
 
     if (parsedJson) {
       // Scenario 1: It's an array of CropRecommendation objects
@@ -199,7 +199,7 @@ export const getAICropRecommendations = async (
           return parsedJson as CropRecommendation[];
         } else {
           console.error("Parsed JSON array elements do not match CropRecommendation structure or type:", parsedJson);
-          return t('gemini.common.error.parseError', { rawResponse: textResponse });
+          return t('gemini.common.error.parseError', { rawResponse: textResponse || 'Empty response' });
         }
       } 
       // Scenario 2: It's a single CropRecommendation object
@@ -212,11 +212,11 @@ export const getAICropRecommendations = async (
       // Scenario 3: It's something else (not a valid response format)
       else {
         console.error("Parsed JSON is not a valid CropRecommendation array or single object:", parsedJson);
-        return t('gemini.common.error.parseError', { rawResponse: textResponse });
+        return t('gemini.common.error.parseError', { rawResponse: textResponse || 'Invalid format' });
       }
     } else {
       // parseJsonFromText returned null (JSON parsing failed or empty/invalid raw response)
-      return t('gemini.common.error.parseError', { rawResponse: textResponse });
+      return t('gemini.common.error.parseError', { rawResponse: textResponse || 'Parse failed' });
     }
 
   } catch (error) {
@@ -273,7 +273,7 @@ export const getSmartHelpDeskResponse = async (
       model: TEXT_MODEL,
       contents: fullPrompt,
     });
-    return response.text;
+    return response.text || null;
   } catch (error) {
     console.error("Error getting smart help desk response:", error);
     const detail = getDetailedErrorMessage(error);
@@ -374,5 +374,125 @@ export const getContextualHelpResponse = async (
     console.error("Error getting contextual help response:", error);
     const detail = getDetailedErrorMessage(error);
     return `${t('gemini.common.error.fetchError')} Details: ${detail}`;
+  }
+};
+
+/**
+ * Plant Disease Detection using Gemini 2.0 Flash Vision Model
+ * Analyzes plant images to detect diseases and provide treatment recommendations
+ */
+export interface PlantDiseaseAnalysis {
+  diseaseName: string;
+  confidence: number;
+  severity: 'Low' | 'Moderate' | 'High' | 'Critical';
+  affectedParts: string[];
+  symptoms: string[];
+  causes: string[];
+  treatment: {
+    immediate: string[];
+    longTerm: string[];
+    organic: string[];
+    chemical: string[];
+  };
+  prevention: string[];
+  spreadRisk: string;
+  estimatedRecoveryTime: string;
+  additionalNotes: string;
+}
+
+export const analyzePlantDisease = async (
+  imageFile: File,
+  lang: LanguageCode = 'en',
+  t: (key: string, replacements?: Record<string, string | number>) => string
+): Promise<PlantDiseaseAnalysis | string> => {
+  if (!ai) return t('gemini.common.error.apiKeyMissing');
+
+  try {
+    // Convert image to base64
+    const imageBase64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        // Remove data URL prefix (e.g., "data:image/jpeg;base64,")
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(imageFile);
+    });
+
+    const languageInstruction = getLanguageInstruction(lang, t);
+
+    const prompt = `You are an expert agricultural pathologist specializing in plant disease diagnosis. 
+Analyze this plant image carefully and provide a comprehensive disease analysis.
+
+Instructions:
+1. Identify the primary disease or health issue visible in the image
+2. Assess the severity and confidence level of your diagnosis
+3. Identify specific symptoms and affected plant parts
+4. Provide detailed, actionable treatment recommendations
+5. Include both organic and chemical treatment options
+6. Suggest preventive measures for future protection
+
+Respond ONLY with a valid JSON object in this exact format (no markdown, no explanation):
+{
+  "diseaseName": "Name of the disease or 'Healthy Plant' if no disease detected",
+  "confidence": 85,
+  "severity": "Low/Moderate/High/Critical",
+  "affectedParts": ["leaves", "stems", "roots"],
+  "symptoms": ["yellowing leaves", "brown spots", "wilting"],
+  "causes": ["fungal infection", "bacterial disease", "environmental stress"],
+  "treatment": {
+    "immediate": ["Remove affected leaves", "Isolate plant", "Apply fungicide"],
+    "longTerm": ["Improve drainage", "Adjust watering schedule", "Nutrient management"],
+    "organic": ["Neem oil spray", "Baking soda solution", "Compost tea"],
+    "chemical": ["Copper-based fungicide", "Systemic bactericide", "Contact fungicide"]
+  },
+  "prevention": ["Proper spacing", "Good air circulation", "Regular monitoring"],
+  "spreadRisk": "Low/Moderate/High - explanation",
+  "estimatedRecoveryTime": "1-2 weeks with proper treatment",
+  "additionalNotes": "Additional context, warnings, or recommendations"
+}
+
+${languageInstruction}
+
+Analyze the plant image now:`;
+
+    const response: GenerateContentResponse = await ai.models.generateContent({
+      model: TEXT_MODEL,
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: prompt },
+            {
+              inlineData: {
+                mimeType: imageFile.type,
+                data: imageBase64
+              }
+            }
+          ]
+        }
+      ],
+      config: {
+        responseMimeType: "application/json",
+        temperature: 0.4, // Lower temperature for more consistent disease identification
+      }
+    });
+
+    const textResponse = response.text || '';
+    const parsedJson = parseJsonFromText<PlantDiseaseAnalysis>(textResponse);
+
+    if (parsedJson && parsedJson.diseaseName) {
+      return parsedJson;
+    } else {
+      console.error("Failed to parse disease analysis response:", textResponse);
+      return `Error: Unable to parse the disease analysis. Raw response: ${textResponse}`;
+    }
+
+  } catch (error) {
+    console.error("Error analyzing plant disease with Gemini Vision:", error);
+    const detail = getDetailedErrorMessage(error);
+    return `Failed to analyze plant image: ${detail}`;
   }
 };

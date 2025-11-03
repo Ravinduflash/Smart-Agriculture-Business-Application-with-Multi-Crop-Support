@@ -6,7 +6,12 @@ import { LanguageContext } from '../contexts/LanguageContext';
 import { useTooltipContent } from '../hooks/useTooltipContent';
 import Modal from '../components/Modal';
 import Spinner from '../components/Spinner';
-import { getCropOptimalConditions, getAICropRecommendations } from '../services/geminiService';
+import { 
+  getCropOptimalConditions, 
+  getAICropRecommendations,
+  analyzePlantDisease,
+  PlantDiseaseAnalysis 
+} from '../services/geminiService';
 import GeminiResponseDisplay from '../components/GeminiResponseDisplay';
 import { CropRecommendation } from '../types';
 
@@ -74,28 +79,96 @@ const MLModelsPage: React.FC = () => {
   };
 
   const handleTrainDiseaseModel = async () => {
+    if (!selectedImageFile) {
+      setDiseaseResults('❌ Error: Please select a plant image first!\n\nTo analyze plant diseases, you need to:\n1. Click "Choose File" button above\n2. Select a clear photo of the affected plant\n3. Click "Analyze with AI" button\n\nSupported formats: JPG, JPEG, PNG\nRecommended: Close-up photos of affected leaves or stems');
+      return;
+    }
+
     setIsTrainingDisease(true);
     setDiseaseResults(null);
     
     try {
-      // Simulate comprehensive disease detection training
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      console.log('🔍 Analyzing plant image with Gemini AI...');
       
-      const diseases = [
-        { name: 'Leaf Blight', confidence: 89, severity: 'Moderate' },
-        { name: 'Powdery Mildew', confidence: 92, severity: 'Low' },
-        { name: 'Root Rot', confidence: 85, severity: 'High' },
-        { name: 'Bacterial Wilt', confidence: 88, severity: 'Moderate' },
-        { name: 'Viral Mosaic', confidence: 91, severity: 'Low' },
-        { name: 'Fungal Leaf Spot', confidence: 87, severity: 'Moderate' }
-      ];
+      const result = await analyzePlantDisease(selectedImageFile, currentLanguage, t);
       
-      const detectedDisease = diseases[Math.floor(Math.random() * diseases.length)];
-      const imageAnalysis = selectedImageFile ? 'Plant image analyzed successfully' : 'Training using synthetic disease patterns';
-      
-      setDiseaseResults(`Disease Detection Model Training Complete!\n\n${imageAnalysis}\n\nModel Performance Metrics:\n• Overall Accuracy: 88.5%\n• Precision: 87.2%\n• Recall: 89.1%\n• F1-Score: 88.1%\n• Training Dataset: 15,000 plant images\n\nLatest Detection Results:\n• Disease: ${detectedDisease.name}\n• Confidence: ${detectedDisease.confidence}%\n• Severity Level: ${detectedDisease.severity}\n• Early Detection: ${detectedDisease.confidence > 85 ? 'Yes' : 'No'}\n\nTreatment Recommendations:\n• Apply organic fungicide if fungal disease detected\n• Improve drainage for root rot prevention\n• Regular monitoring and early intervention\n• Maintain optimal growing conditions\n• Consider resistant crop varieties\n\nNext Steps:\n• Monitor plant health daily\n• Document disease progression\n• Apply recommended treatments\n• Update disease prevention protocols\n\nTraining Status: Model ready for deployment\nLast Updated: ${new Date().toLocaleString()}`);
+      if (typeof result === 'string') {
+        // Error message
+        setDiseaseResults(`❌ Disease Analysis Error!\n\n${result}\n\nTroubleshooting:\n• Ensure the image shows a plant clearly\n• Try a different photo with better lighting\n• Make sure the image file is not corrupted\n• Check your internet connection\n\nTimestamp: ${new Date().toLocaleString()}`);
+      } else {
+        // Successful analysis
+        const analysis = result as PlantDiseaseAnalysis;
+        
+        const formattedResults = `🌿 Plant Disease Analysis Complete!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 DIAGNOSIS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Disease Identified: ${analysis.diseaseName}
+Confidence Level: ${analysis.confidence}%
+Severity: ${analysis.severity}
+Affected Parts: ${analysis.affectedParts.join(', ')}
+
+🔬 SYMPTOMS DETECTED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${analysis.symptoms.map((s, i) => `${i + 1}. ${s}`).join('\n')}
+
+🦠 PROBABLE CAUSES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${analysis.causes.map((c, i) => `${i + 1}. ${c}`).join('\n')}
+
+💊 TREATMENT RECOMMENDATIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚡ IMMEDIATE ACTION (Do Now):
+${analysis.treatment.immediate.map((t, i) => `  ${i + 1}. ${t}`).join('\n')}
+
+📅 LONG-TERM MANAGEMENT:
+${analysis.treatment.longTerm.map((t, i) => `  ${i + 1}. ${t}`).join('\n')}
+
+🌱 ORGANIC OPTIONS:
+${analysis.treatment.organic.map((t, i) => `  ${i + 1}. ${t}`).join('\n')}
+
+🧪 CHEMICAL OPTIONS (If Necessary):
+${analysis.treatment.chemical.map((t, i) => `  ${i + 1}. ${t}`).join('\n')}
+
+🛡️ PREVENTION FOR FUTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${analysis.prevention.map((p, i) => `${i + 1}. ${p}`).join('\n')}
+
+⚠️ SPREAD RISK ASSESSMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${analysis.spreadRisk}
+
+⏱️ ESTIMATED RECOVERY TIME
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${analysis.estimatedRecoveryTime}
+
+📝 ADDITIONAL NOTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${analysis.additionalNotes}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🤖 Analysis powered by Smart Agriculture Inteligence
+📅 Analysis Date: ${new Date().toLocaleString()}
+🖼️ Image: ${selectedImageFile.name}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 Pro Tips:
+• Take action immediately for high severity diseases
+• Document plant recovery progress with photos
+• Consult local agricultural extension for region-specific advice
+• Keep records of treatment effectiveness
+• Monitor surrounding plants for spread`;
+
+        setDiseaseResults(formattedResults);
+        
+        // Show success notification
+        console.log('✅ Disease analysis completed:', analysis.diseaseName, `(${analysis.confidence}% confidence)`);
+      }
     } catch (error) {
-      setDiseaseResults(`Error training disease model: ${error instanceof Error ? error.message : 'Unknown error occurred during training'}`);
+      console.error('❌ Unexpected error during disease analysis:', error);
+      setDiseaseResults(`❌ Unexpected Error During Analysis!\n\nError Details: ${error instanceof Error ? error.message : 'Unknown error occurred'}\n\nWhat to do:\n• Check your internet connection\n• Verify your Gemini API key is set correctly\n• Try with a different image\n• Ensure the image file size is under 10MB\n• Contact support if the problem persists\n\nError Code: DDA-${Date.now()}\nTimestamp: ${new Date().toLocaleString()}`);
     } finally {
       setIsTrainingDisease(false);
     }
@@ -506,33 +579,65 @@ const MLModelsPage: React.FC = () => {
       <Modal
         isOpen={isDiseaseModalOpen}
         onClose={() => setIsDiseaseModalOpen(false)}
-        title="Disease Detection Model Training"
+        title="Plant Disease Detection"
       >
         <div className="space-y-4">
+          <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+            <p className="text-sm text-green-800 font-medium mb-2">
+              🤖 Powered by Smart Agriculture Intelligence
+            </p>
+            <p className="text-xs text-green-700">
+              Upload a clear photo of your plant showing any symptoms. The AI will identify diseases, 
+              assess severity, and provide specific treatment recommendations.
+            </p>
+          </div>
+          
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Upload Plant Image (Optional)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              📷 Upload Plant Image *
+            </label>
             <input
               type="file"
               accept="image/*"
               onChange={(e) => setSelectedImageFile(e.target.files?.[0] || null)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-gray-900"
             />
+            {selectedImageFile && (
+              <p className="text-xs text-green-600 mt-1">
+                ✓ Selected: {selectedImageFile.name} ({(selectedImageFile.size / 1024).toFixed(1)} KB)
+              </p>
+            )}
           </div>
-          <div className="text-sm text-gray-600">
-            <p>This model will analyze plant images to detect diseases and provide treatment recommendations.</p>
-            <p>Training includes: Leaf spot, Blight, Rust, Powdery mildew, and other common diseases.</p>
+          
+          <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg border border-blue-200">
+            <p className="font-semibold mb-1">📸 Tips for Best Results:</p>
+            <ul className="list-disc list-inside space-y-1 text-xs">
+              <li>Take close-up photos of affected areas</li>
+              <li>Ensure good lighting (natural light preferred)</li>
+              <li>Include leaves, stems, or affected plant parts</li>
+              <li>Avoid blurry images</li>
+              <li>Show clear disease symptoms if visible</li>
+            </ul>
           </div>
+          
           <button
             onClick={handleTrainDiseaseModel}
-            disabled={isTrainingDisease}
-            className="w-full bg-secondary text-white px-4 py-2 rounded-md hover:bg-secondary-dark transition-colors disabled:opacity-50 flex items-center justify-center"
+            disabled={isTrainingDisease || !selectedImageFile}
+            className="w-full bg-secondary text-white px-4 py-2 rounded-md hover:bg-secondary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           >
-            {isTrainingDisease ? <Spinner size="sm" color="text-white" /> : 'Train Disease Model'}
+            {isTrainingDisease ? <Spinner size="sm" color="text-white" /> : '🤖 Analyze Plant Disease'}
           </button>
+          
           {diseaseResults && (
-            <div className="mt-4 p-3 bg-gray-50 rounded-md max-h-60 overflow-y-auto">
-              <h4 className="font-semibold mb-2">Training Results:</h4>
+            <div className="mt-4 p-3 bg-gray-50 rounded-md max-h-96 overflow-y-auto">
+              <h4 className="font-semibold mb-2">AI Analysis Results:</h4>
               <GeminiResponseDisplay response={diseaseResults} />
+              <button
+                onClick={() => downloadResults(diseaseResults, 'disease-analysis-report.txt')}
+                className="mt-3 text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+              >
+                💾 Download Full Report
+              </button>
             </div>
           )}
         </div>
