@@ -163,10 +163,13 @@ export interface PieChartData {
 
 export interface NotificationMessage {
   id: string;
-  messageKey: string; // Changed from 'message' to 'messageKey'
+  title?: string; // Notification title
+  message?: string; // Notification message content
+  messageKey?: string; // Optional translation key for backward compatibility
   timestamp: string;
   type: 'info' | 'warning' | 'success' | 'error';
   icon?: React.ReactNode;
+  read?: boolean; // Mark if notification has been read
 }
 
 export interface AnalyticsMetric {

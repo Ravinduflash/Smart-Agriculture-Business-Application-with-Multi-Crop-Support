@@ -14,6 +14,7 @@ import { fetchThingSpeakData, mapThingSpeakDataToSensors, parseFloatSafe } from 
 import { useTooltip } from '../hooks/useTooltip';
 import { firestoreService } from '../src/services/firestoreService';
 import { mapFirestoreReadingToSensors } from '../services/firestoreSensorMapper';
+import { notificationService } from '../services/notificationService';
 
 const POLLING_INTERVAL = 20000; // 20 seconds
 const AI_ADVICE_INTERVAL = 300000; // 5 minutes (300,000 ms)
@@ -38,13 +39,16 @@ const DashboardPage: React.FC = () => {
     if (sensors.length === 0 && t) {
       const initializedSensors = getMockSensors().map(s => ({
         ...s, 
-        status: s.type === SensorType.SoilMoisture ? SoilMoistureStatusType.NotAvailable :
+        status: (s.type === SensorType.SoilMoisture ? SoilMoistureStatusType.NotAvailable :
                 s.type === SensorType.Temperature ? TemperatureStatusType.NotAvailable :
-                s.type === SensorType.Humidity ? HumidityStatusType.NotAvailable : 'Stable', 
+                s.type === SensorType.Humidity ? HumidityStatusType.NotAvailable : 'Stable') as Sensor['status'], 
         currentValue: t('common.na') 
       }));
       setSensors(initializedSensors);
       sensorsRef.current = initializedSensors;
+      
+      // Initialize sensor states in notification service to prevent false alerts on first load
+      notificationService.initializeSensorStates(initializedSensors);
     }
   }, [t, sensors.length]);
 
@@ -54,15 +58,22 @@ const DashboardPage: React.FC = () => {
     try {
       const initialSensorsBase = getMockSensors(); // Base structure
       
-      // NEW: Fetch from Firestore instead of ThingSpeak
-      const readings = await firestoreService.getLatestSensorReadings('amaranthus', 1);
+      // Fetch from Firestore using correct crop ID from sensor_simulator
+      const readings = await firestoreService.getLatestSensorReadings('crop_1762085977354', 1);
       const latestReading = readings.length > 0 ? readings[0] : null;
+      
+      console.log('📡 Dashboard: Fetched latest sensor reading:', latestReading ? 'Data available' : 'No data');
       
       // Map Firestore data to sensors
       const processedSensors = mapFirestoreReadingToSensors(latestReading, initialSensorsBase, t);
       
       setSensors(processedSensors);
       sensorsRef.current = processedSensors; // Update ref with current sensors
+      
+      // Check for sensor status changes and create notifications (skip on initial load)
+      if (!isInitialLoad) {
+        await notificationService.checkSensorStatusChanges(processedSensors);
+      }
     } catch (error) {
       console.error('Error loading sensor data from Firestore:', error);
       // Fallback to ThingSpeak if Firestore fails

@@ -25,7 +25,8 @@ export const COLLECTIONS = {
   CHATBOT_KNOWLEDGE: 'chatbotKnowledgeBase',
   ML_PREDICTIONS: 'mlPredictions',
   HARVEST_CYCLES: 'harvest_cycles',
-  DAILY_FORECASTS: 'daily_forecasts'
+  DAILY_FORECASTS: 'daily_forecasts',
+  NOTIFICATIONS: 'notifications'
 };
 
 // TypeScript Interfaces

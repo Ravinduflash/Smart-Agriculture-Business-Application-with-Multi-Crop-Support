@@ -233,27 +233,31 @@ function mapFirestoreStatus(status: string | null, statusEnum: any): any {
   if (!status) return statusEnum.NotAvailable;
   
   // Map Firestore status strings to app status enums
+  // Note: For Soil/Rain "Dry" conflict, we check the enum type passed in
+  const isRainSensor = statusEnum === RainLevelStatusType;
+  
   const statusMap: Record<string, any> = {
-    // Soil Moisture
-    'Dry': SoilMoistureStatusType.Dry,
-    'Optimal': SoilMoistureStatusType.Optimal,
-    'Wet': SoilMoistureStatusType.Wet,
+    // Soil Moisture - matching sensor_simulator.py output
+    'Dry': isRainSensor ? RainLevelStatusType.Dry : SoilMoistureStatusType.DryNeedsIrrigation,
+    'Optimal': SoilMoistureStatusType.OptimalMoisture,
+    'Wet': SoilMoistureStatusType.WetReduceIrrigation,
+    'Waterlogged': SoilMoistureStatusType.Waterlogged,
     
-    // Light
+    // Light - matching sensor_simulator.py output
     'Very Dark': LightIntensityStatusType.VeryDark,
     'Low Light': LightIntensityStatusType.LowLight,
     'Medium Light': LightIntensityStatusType.MediumLight,
     'Bright Light': LightIntensityStatusType.BrightLight,
     
-    // Rain
+    // Rain - matching sensor_simulator.py output
     'Light Rain': RainLevelStatusType.LightRain,
     'Moderate Rain': RainLevelStatusType.ModerateRain,
     'Heavy Rain': RainLevelStatusType.HeavyRain,
     
-    // Air Pressure
-    'Low (Unsettled)': AirPressureStatusType.Low,
-    'Normal': AirPressureStatusType.Normal,
-    'High (Stable)': AirPressureStatusType.High
+    // Air Pressure - matching sensor_simulator.py output
+    'Low (Unsettled)': AirPressureStatusType.LowPressure,
+    'Normal': AirPressureStatusType.NormalPressure,
+    'High (Stable)': AirPressureStatusType.HighPressure
   };
   
   return statusMap[status] || statusEnum.NotAvailable;
@@ -261,23 +265,23 @@ function mapFirestoreStatus(status: string | null, statusEnum: any): any {
 
 function getTemperatureStatus(temp: number | null): TemperatureStatusType {
   if (temp === null) return TemperatureStatusType.NotAvailable;
-  if (temp < 15) return TemperatureStatusType.Low;
-  if (temp >= 15 && temp <= 30) return TemperatureStatusType.Optimal;
-  return TemperatureStatusType.High;
+  if (temp < 15) return TemperatureStatusType.TooCold;
+  if (temp >= 15 && temp <= 30) return TemperatureStatusType.OptimalTemperature;
+  return TemperatureStatusType.TooHot;
 }
 
 function getHumidityStatus(humidity: number | null): HumidityStatusType {
   if (humidity === null) return HumidityStatusType.NotAvailable;
-  if (humidity < 40) return HumidityStatusType.Low;
-  if (humidity >= 40 && humidity <= 70) return HumidityStatusType.Optimal;
-  return HumidityStatusType.High;
+  if (humidity < 40) return HumidityStatusType.TooDry;
+  if (humidity >= 40 && humidity <= 70) return HumidityStatusType.OptimalHumidity;
+  return HumidityStatusType.TooHumid;
 }
 
 function getSoilTemperatureStatus(temp: number | null): SoilTemperatureStatusType {
   if (temp === null) return SoilTemperatureStatusType.NotAvailable;
-  if (temp < 15) return SoilTemperatureStatusType.Low;
+  if (temp < 15) return SoilTemperatureStatusType.Cool;
   if (temp >= 15 && temp <= 30) return SoilTemperatureStatusType.Optimal;
-  return SoilTemperatureStatusType.High;
+  return SoilTemperatureStatusType.HeatStress;
 }
 
 function getNPKStatus(reading: SensorReading): NPKStatusType {
@@ -287,14 +291,14 @@ function getNPKStatus(reading: SensorReading): NPKStatusType {
   
   if (!n || !p || !k) return NPKStatusType.NotAvailable;
   
-  // If any nutrient is low, overall status is low
-  if (n === 'Low' || p === 'Low' || k === 'Low') return NPKStatusType.Low;
+  // If any nutrient is low, overall status is low (deficiency)
+  if (n === 'Low' || p === 'Low' || k === 'Low') return NPKStatusType.Deficiency;
   
   // If all are optimal, status is optimal
   if (n === 'Optimal' && p === 'Optimal' && k === 'Optimal') return NPKStatusType.Optimal;
   
-  // If any is high
-  if (n === 'High' || p === 'High' || k === 'High') return NPKStatusType.High;
+  // If any is high (and no deficiencies), status is excess
+  if (n === 'High' || p === 'High' || k === 'High') return NPKStatusType.Excess;
   
   return NPKStatusType.NotAvailable;
 }

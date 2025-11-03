@@ -109,10 +109,10 @@ const IoTSensorsPage: React.FC = () => {
       
       const resultsToFetch = isInitialLoad ? INITIAL_HISTORICAL_RESULTS : HISTORICAL_RESULTS_ON_POLL;
       
-      // NEW: Fetch from Firestore instead of ThingSpeak
-      const readings = await firestoreService.getLatestSensorReadings('amaranthus', resultsToFetch);
+      // Fetch from Firestore using correct crop ID from sensor_simulator
+      const readings = await firestoreService.getLatestSensorReadings('crop_1762085977354', resultsToFetch);
       
-      console.log('Firestore readings fetched:', readings.length); // Debug log
+      console.log('📡 IoT Sensors: Firestore readings fetched:', readings.length);
       
       if (readings.length > 0) {
         const latestReading = readings[0];
@@ -124,7 +124,7 @@ const IoTSensorsPage: React.FC = () => {
           // Add historical data for each sensor type
           const historicalData = mapFirestoreReadingsToHistoricalData(readings, sensor.type);
           
-          console.log(`Sensor ${sensor.type}: ${historicalData.length} historical data points`); // Debug log
+          console.log(`📊 Sensor ${sensor.type}: ${historicalData.length} historical data points`);
           
           return {
             ...mappedSensor,
@@ -132,20 +132,17 @@ const IoTSensorsPage: React.FC = () => {
           };
         });
         
-        console.log('Processed sensors:', processedSensors.map(s => ({
-          type: s.type,
-          historicalCount: s.historicalData?.length || 0
-        }))); // Debug log
+        console.log('✅ IoT Sensors: Processed sensors with data from simulator');
         
         setSensors(processedSensors);
       } else {
         // No data in Firestore, show placeholders
-        console.warn('No Firestore data found, showing placeholders'); // Debug log
+        console.warn('⚠️ IoT Sensors: No Firestore data found, showing placeholders');
         setSensors(placeholderSensors);
       }
       
     } catch (error) {
-      console.error('Error loading sensor data from Firestore:', error);
+      console.error('❌ IoT Sensors: Error loading sensor data from Firestore:', error);
       // Fallback to ThingSpeak if Firestore fails
       const initialMockSensorsBase = getMockSensors();
       const resultsToFetch = isInitialLoad ? INITIAL_HISTORICAL_RESULTS : HISTORICAL_RESULTS_ON_POLL;
