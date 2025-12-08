@@ -121,18 +121,18 @@ export default function AnalyticsPage(): JSX.Element {
           </div>
         </div>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-          <h3 className="text-lg font-semibold text-textDark mb-2 sm:mb-0">{t('analytics.aiDataAnalyst.title')}</h3>
+          <h3 className="text-lg font-semibold text-textDark mb-2 sm:mb-0">{t('analytics.intelligenceDataAnalyst.title')}</h3>
           <button
             onClick={handleGenerateInsights}
             disabled={isLoadingInsights}
             className="bg-primary text-white px-4 py-2 rounded-lg shadow hover:bg-primary-dark transition-colors disabled:opacity-50 flex items-center justify-center self-start sm:self-center"
           >
-            {isLoadingInsights ? <Spinner size="sm" color="text-white" /> : t('analytics.aiDataAnalyst.button')}
+            {isLoadingInsights ? <Spinner size="sm" color="text-white" /> : t('analytics.intelligenceDataAnalyst.button')}
           </button>
         </div>
         {isLoadingInsights && <Spinner />}
         {!isLoadingInsights && insights && <GeminiResponseDisplay response={insights} />}
-         {!isLoadingInsights && !insights && <p className="text-sm text-textMedium">{t('analytics.aiDataAnalyst.initialMessage')}</p>}
+         {!isLoadingInsights && !insights && <p className="text-sm text-textMedium">{t('analytics.intelligenceDataAnalyst.initialMessage')}</p>}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">

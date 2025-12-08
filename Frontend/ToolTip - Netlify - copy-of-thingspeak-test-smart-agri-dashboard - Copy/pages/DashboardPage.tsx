@@ -396,7 +396,7 @@ const DashboardPage: React.FC = () => {
 
       {(isLoadingAdvice || farmingAdvice || (!isLoadingSensors && !farmingAdvice)) && (
           <div data-help-id="ai-farming-advisor" className="bg-card p-6 rounded-xl shadow-lg">
-            <h3 className="text-lg font-semibold text-textDark mb-2">{t('dashboard.aiFarmingAdvisor')}</h3>
+            <h3 className="text-lg font-semibold text-textDark mb-2">{t('dashboard.intelligenceFarmingAdvisor')}</h3>
             {isLoadingAdvice && <Spinner />}
             {!isLoadingAdvice && farmingAdvice && <GeminiResponseDisplay response={farmingAdvice} />}
             {!isLoadingAdvice && !farmingAdvice && !isLoadingSensors && 

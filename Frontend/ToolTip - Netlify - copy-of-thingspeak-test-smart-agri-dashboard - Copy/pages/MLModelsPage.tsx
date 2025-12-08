@@ -647,7 +647,7 @@ ${analysis.additionalNotes}
       <Modal
         isOpen={isCropRecModalOpen}
         onClose={() => setIsCropRecModalOpen(false)}
-        title="AI Crop Recommendation Engine"
+        title="Crop Recommendation Engine"
       >
         <div className="space-y-4">
           <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
