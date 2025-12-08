@@ -7,7 +7,7 @@ import { getAnalytics } from 'firebase/analytics';
 // Project: gen-lang-client-0092156800
 // Database: sasapp
 const firebaseConfig = {
-  apiKey: "REDACTED_SECRET",
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "YOUR_API_KEY",
   authDomain: "gen-lang-client-0092156800.firebaseapp.com",
   projectId: "gen-lang-client-0092156800",
   storageBucket: "gen-lang-client-0092156800.firebasestorage.app",

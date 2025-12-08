@@ -11,10 +11,10 @@
   - ✅ `chatbotKnowledgeBase` (5 documents)
 
 ### ✅ Firebase Configuration
-- **API Key**: `REDACTED_SECRET`
-- **App ID**: `1:126088540777:web:c47b63cb5dc2e2c57fe8f8`
-- **Sender ID**: `126088540777`
-- **Analytics ID**: `G-PP8NFDVBFR`
+- **API Key**: `YOUR_FIREBASE_API_KEY`
+- **App ID**: `YOUR_APP_ID`
+- **Sender ID**: `YOUR_SENDER_ID`
+- **Analytics ID**: `YOUR_ANALYTICS_ID`
 
 ### ✅ Files Updated
 - ✅ `firebase.ts` - Complete Firebase SDK configuration
@@ -165,11 +165,11 @@ netlify login
 netlify deploy --prod --dir=dist
 
 # Set environment variables
-netlify env:set VITE_FIREBASE_API_KEY "REDACTED_SECRET"
-netlify env:set VITE_FIREBASE_APP_ID "1:126088540777:web:c47b63cb5dc2e2c57fe8f8"
-netlify env:set VITE_FIREBASE_MESSAGING_SENDER_ID "126088540777"
+netlify env:set VITE_FIREBASE_API_KEY "YOUR_FIREBASE_API_KEY"
+netlify env:set VITE_FIREBASE_APP_ID "YOUR_APP_ID"
+netlify env:set VITE_FIREBASE_MESSAGING_SENDER_ID "YOUR_SENDER_ID"
 netlify env:set VITE_FIREBASE_DATABASE_ID "sasapp"
-netlify env:set GEMINI_API_KEY "REDACTED_SECRET"
+netlify env:set GEMINI_API_KEY "YOUR_GEMINI_API_KEY"
 ```
 
 ---

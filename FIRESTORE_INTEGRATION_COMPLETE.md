@@ -182,7 +182,7 @@ export function mapFirestoreReadingsToChart(
 ```bash
 cd firebase-functions
 npm install
-firebase functions:config:set gemini.apikey="REDACTED_SECRET"
+firebase functions:config:set gemini.apikey="YOUR_GEMINI_API_KEY"
 firebase deploy --only functions
 ```
 

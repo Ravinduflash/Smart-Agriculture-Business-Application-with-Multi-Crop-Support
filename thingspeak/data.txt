@@ -1,5 +1,5 @@
-channel - Kangkung:- Channel ID: 2989974 API KEY:- Write API Key :- REDACTED_SECRET
-Read API Keys :- REDACTED_SECRET
+channel - Kangkung:- Channel ID: 2989974 API KEY:- Write API Key :- YOUR_WRITE_API_KEY
+Read API Keys :- YOUR_READ_API_KEY
 f1 -Air Temperature from DHT22
 f2 -Air Humidity from DHT22
 f3 -Water/Soil Temperature from DS18B20
@@ -11,13 +11,13 @@ f8 -Potassium (K) from NPK Sensor
 
 API Requests
 Write a Channel Feed
-GET https://api.thingspeak.com/update?api_key=REDACTED_SECRET&field1=0
+GET https://api.thingspeak.com/update?api_key=YOUR_WRITE_API_KEY&field1=0
 
 Read a Channel Feed
-GET https://api.thingspeak.com/channels/2989974/feeds.json?api_key=REDACTED_SECRET&results=2
+GET https://api.thingspeak.com/channels/2989974/feeds.json?api_key=YOUR_READ_API_KEY&results=2
 
 Read a Channel Field
-GET https://api.thingspeak.com/channels/2989974/fields/1.json?api_key=REDACTED_SECRET&results=2
+GET https://api.thingspeak.com/channels/2989974/fields/1.json?api_key=YOUR_READ_API_KEY&results=2
 
 Read Channel Status Updates
-GET https://api.thingspeak.com/channels/2989974/status.json?api_key=REDACTED_SECRET
+GET https://api.thingspeak.com/channels/2989974/status.json?api_key=YOUR_READ_API_KEY

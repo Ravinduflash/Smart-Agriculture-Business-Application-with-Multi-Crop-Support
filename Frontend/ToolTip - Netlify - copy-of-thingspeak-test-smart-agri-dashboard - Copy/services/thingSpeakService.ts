@@ -5,7 +5,7 @@ const THINGSPEAK_API_BASE_URL = "https://api.thingspeak.com";
 
 // Default values, will be overridden by environment variables if set
 const DEFAULT_CHANNEL_ID = "2989974";
-const DEFAULT_READ_API_KEY = "REDACTED_SECRET";
+const DEFAULT_READ_API_KEY = process.env.THINGSPEAK_READ_API_KEY || "YOUR_THINGSPEAK_API_KEY";
 
 // Soil Moisture ADC Thresholds
 const DRY_THRESHOLD = 28000;

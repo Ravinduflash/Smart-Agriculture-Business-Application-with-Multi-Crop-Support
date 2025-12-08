@@ -92,7 +92,7 @@ npm install
 
 ### Step 2: Set Gemini API Key
 ```bash
-firebase functions:config:set gemini.apikey="REDACTED_SECRET"
+firebase functions:config:set gemini.apikey="YOUR_GEMINI_API_KEY"
 ```
 
 ### Step 3: Deploy Functions

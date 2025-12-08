@@ -91,7 +91,7 @@ netlify deploy --prod --dir=dist
 
    | Variable Name | Value |
    |--------------|-------|
-   | `VITE_FIREBASE_API_KEY` | `REDACTED_SECRET` |
+   | `VITE_FIREBASE_API_KEY` | `YOUR_FIREBASE_API_KEY` |
    | `VITE_FIREBASE_AUTH_DOMAIN` | `gen-lang-client-0092156800.firebaseapp.com` |
    | `VITE_FIREBASE_PROJECT_ID` | `gen-lang-client-0092156800` |
    | `VITE_FIREBASE_STORAGE_BUCKET` | `gen-lang-client-0092156800.firebasestorage.app` |
@@ -99,7 +99,7 @@ netlify deploy --prod --dir=dist
    | `VITE_FIREBASE_APP_ID` | `1:126088540777:web:c47b63cb5dc2e2c57fe8f8` |
    | `VITE_FIREBASE_MEASUREMENT_ID` | `G-PP8NFDVBFR` |
    | `VITE_FIREBASE_DATABASE_ID` | `sasapp` |
-   | `GEMINI_API_KEY` | `REDACTED_SECRET` |
+   | `GEMINI_API_KEY` | `YOUR_GEMINI_API_KEY` |
 
 3. **Redeploy**:
    - Go to **Deploys**
